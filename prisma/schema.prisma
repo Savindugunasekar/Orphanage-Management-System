@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model application {
+  applicationid String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userid        String?   @db.Uuid
+  username      String?   @db.VarChar(255)
+  createdat     DateTime? @default(now()) @db.Timestamp(6)
+  status        String?   @default("Pending")
+  emailaddress  String?   @db.VarChar(255)
+  genderofchild String?   @db.VarChar(255)
+  agerange      Int[]
+  users         users?    @relation(fields: [userid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model cases {
+  caseid                            String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  childid                           String? @db.Uuid
+  parentid                          String? @db.Uuid
+  socialworkerid                    String? @db.Uuid
+  child                             child?  @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
+  users_cases_parentidTousers       users?  @relation("cases_parentidTousers", fields: [parentid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  users_cases_socialworkeridTousers users?  @relation("cases_socialworkeridTousers", fields: [socialworkerid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model child {
+  childid            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orphanageid        String      @db.Uuid
+  name               String      @db.VarChar(100)
+  date_of_birth      DateTime    @db.Date
+  gender             gender_type
+  nationality        String?     @db.VarChar(10)
+  religion           String?     @db.VarChar(10)
+  medicaldetails     String?
+  educationaldetails String?
+  cases              cases[]
+  orphanage          orphanage   @relation(fields: [orphanageid], references: [orphanageid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model messages {
+  messageid    String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sendername   String?  @db.VarChar(50)
+  subject      String?
+  context      String?
+  replied      Boolean? @default(false)
+  replycontext String?
+  users        users?   @relation(fields: [sendername], references: [username], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model orphanage {
+  orphanageid   String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  headid        String         @unique @db.Uuid
+  orphanagename String         @db.VarChar(50)
+  address       String?        @db.VarChar(255)
+  telno         Int?
+  head_email    String         @db.VarChar(255)
+  capacity      Int?
+  child         child[]
+  users         users          @relation(fields: [headid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  socialworker  socialworker[]
+  staff         staff[]
+}
+
+model request {
+  requestid                     String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  type                          request_type
+  entity                        String       @db.VarChar(20)
+  request                       Json
+  receiver                      String       @db.Uuid
+  status                        status_type  @default(pending)
+  message                       String?      @db.VarChar(255)
+  created_at                    DateTime     @default(now()) @db.Timestamptz(6)
+  updated_at                    DateTime     @default(now()) @db.Timestamptz(6)
+  sender                        String       @db.Uuid
+  users_request_receiverTousers users        @relation("request_receiverTousers", fields: [receiver], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  users_request_senderTousers   users        @relation("request_senderTousers", fields: [sender], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model socialworker {
+  socialworkerid String    @id @db.Uuid
+  orphanageid    String    @db.Uuid
+  orphanage      orphanage @relation(fields: [orphanageid], references: [orphanageid], onDelete: NoAction, onUpdate: NoAction)
+  users          users     @relation(fields: [socialworkerid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model staff {
+  staffid     String    @id @db.Uuid
+  orphanageid String    @db.Uuid
+  orphanage   orphanage @relation(fields: [orphanageid], references: [orphanageid], onDelete: NoAction, onUpdate: NoAction)
+  users       users     @relation(fields: [staffid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  userid                            String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username                          String?       @unique @db.VarChar(50)
+  password                          String?       @db.VarChar(255)
+  email                             String        @unique @db.VarChar(100)
+  telno                             Int?
+  roles                             Json
+  refreshtoken                      String?       @unique
+  application                       application[]
+  cases_cases_parentidTousers       cases[]       @relation("cases_parentidTousers")
+  cases_cases_socialworkeridTousers cases[]       @relation("cases_socialworkeridTousers")
+  messages                          messages[]
+  orphanage                         orphanage?
+  request_request_receiverTousers   request[]     @relation("request_receiverTousers")
+  request_request_senderTousers     request[]     @relation("request_senderTousers")
+  socialworker                      socialworker?
+  staff                             staff?
+}
+
+enum gender_type {
+  Male
+  Female
+}
+
+enum request_type {
+  create
+  update
+  delete
+}
+
+enum status_type {
+  pending
+  approved
+  rejected
+}

@@ -3,23 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@mui/material": "^5.16.0",
     "@tailwindcss/forms": "^0.5.7",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.2",
     "jwt-decode": "^4.0.0",
+    "pdfjs-dist": "^4.5.136",
     "query-string": "^9.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1",
     "react-infinite-scroll-component": "^6.1.0",
     "react-router-dom": "^6.23.1",
     "react-scripts": "5.0.1",
+    "react-scroll": "^1.9.0",
     "react-slider": "^2.0.6",
     "swiper": "^11.1.4",
     "web-vitals": "^2.1.4"
@@ -29,12 +35,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

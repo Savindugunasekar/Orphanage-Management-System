@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
-const db = require('../config/dbConn');
+const ROLES_LIST = require('../config/roles_list');
 const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const handleLogin = async (req, res) => {
     const { email, password } = req.body;
@@ -10,12 +12,13 @@ const handleLogin = async (req, res) => {
 
     try {
         // Query user from database
-        const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = await prisma.users.findUnique({
+            where: {
+                email: email,
+            },
+        });
 
-        let user;
-        if (userResult.rows.length > 0) {
-            user = userResult.rows[0];
-        } else {
+        if (!user) {
             return res.sendStatus(401); // Unauthorized if user not found
         }
 
@@ -26,12 +29,48 @@ const handleLogin = async (req, res) => {
             const roles = user.roles ? Object.values(user.roles) : []; // Ensure roles exist and are an array
 
             // Create access token
-            const accessToken = jwt.sign(
+            let accessToken;
+            let RelevetOrphanage;
+
+            if (!roles.includes(ROLES_LIST.Admin) && roles.includes(ROLES_LIST.Head)) {
+                RelevetOrphanage = await prisma.orphanage.findUnique({
+                    where: {
+                        headid: user.userid
+                    },
+                    select: {
+                        orphanageid: true
+                    }
+                })
+            }
+            else if (!roles.includes(ROLES_LIST.Admin) && roles.includes(ROLES_LIST.SocialWorker)) {
+                RelevetOrphanage = await prisma.socialworker.findUnique({
+                    where: {
+                        socialworkerid: user.userid
+                    },
+                    select: {
+                        orphanageid: true
+                    }
+                })
+            }
+            else if (!roles.includes(ROLES_LIST.Admin) && roles.includes(ROLES_LIST.Staff)) {
+                RelevetOrphanage = await prisma.staff.findUnique({
+                    where: {
+                        staffid: user.userid
+                    },
+                    select: {
+                        orphanageid: true
+                    }
+                })
+            }
+            else RelevetOrphanage = null;
+
+            accessToken = jwt.sign(
                 {
                     "UserInfo": {
-                        "userId":user.userid,
+                        "userId": user.userid,
                         "username": user.username,
-                        "roles": roles
+                        "roles": roles,
+                        "orphanageid": RelevetOrphanage?.orphanageid
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,
@@ -40,13 +79,20 @@ const handleLogin = async (req, res) => {
 
             // Create refresh token
             const refreshToken = jwt.sign(
-                { "username": user.username },
+                { "email": user.email },
                 process.env.REFRESH_TOKEN_SECRET,
                 { expiresIn: '1d' }
             );
 
             // Update refresh token in database
-            await db.query('UPDATE users SET refreshtoken = $1 WHERE userid = $2', [refreshToken, user.userid]);
+            await prisma.users.update({
+                where: {
+                    userid: user.userid,
+                },
+                data: {
+                    refreshtoken: refreshToken,
+                },
+            });
 
             // Set refresh token in cookie
             res.cookie('jwt', refreshToken, {
@@ -60,7 +106,7 @@ const handleLogin = async (req, res) => {
             res.json({ accessToken });
         } else {
             res.sendStatus(401); // Unauthorized if password doesn't match
-           
+
         }
     } catch (error) {
         console.error(error);

@@ -7,23 +7,20 @@ const Search = ({ searchTerm, setSearchTerm }) => {
   };
 
   return (
-
     <div>
-        
-        <div className="flex-center  overflow-hidden  px-4 py-2 bg-gray-50 ml-20 h-[50px]">
+      <div className="flex justify-start items-left h-[50px] bg-gray-50 rounded overflow-hidden">
+        <i className="fa-solid fa-magnifying-glass my-auto ml-3"></i>
+        <input
+          type="text"
+          placeholder="Search by name.."
+          value={searchTerm}
+          onChange={handleInputChange}
+          className="border-0 outline-none p-2 bg-gray-50 focus:border-orange-500 focus:ring-0 focus:ring-orange-500 w-full"
+        />
+      </div>
 
-        
-<i className="fa-solid fa-magnifying-glass"></i>
-<input
-  type="text"
-  placeholder="Search by name.."
-  value={searchTerm}
-  onChange={handleInputChange} 
-  className="border-0 outline-none p focus:border-0 focus-visible:ring-0 focus:ring-transparent bg-gray-50"
-/>
-</div>
     </div>
-    
+
   );
 };
 

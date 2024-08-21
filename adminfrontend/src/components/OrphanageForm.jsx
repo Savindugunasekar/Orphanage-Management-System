@@ -1,22 +1,27 @@
 import React, { useState } from "react";
 
-import useAuth from "../hooks/useAuth";
-import { axiosPrivate } from "../api/axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
-
 const OrphanageForm = () => {
+  const axiosPrivate = useAxiosPrivate();
 
-  const axiosPrivate = useAxiosPrivate()
+  // List of districts in Sri Lanka
+  const districts = [
+    "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
+    "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
+    "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
+    "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
+    "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
+  ];
 
-
-  // State with required fields only
+  // State with required fields including district
   const [orphanageDetails, setOrphanageDetails] = useState({
     orphanagename: "",
     address: "",
     capacity: 0,
     telno: "",
     head_email: "",
+    district: "" // New state field for district
   });
 
   // Handler to update the state when input changes
@@ -33,9 +38,6 @@ const OrphanageForm = () => {
     try {
       const response = await axiosPrivate.post("/orphanage", orphanageDetails, {
         headers: {
-
-         
-
           "Content-Type": "application/json",
         },
       });
@@ -50,6 +52,7 @@ const OrphanageForm = () => {
           capacity: 0,
           telno: "",
           head_email: "",
+          district: "" // Reset district as well
         });
       } else {
         console.error("Failed to add orphanage");
@@ -69,10 +72,7 @@ const OrphanageForm = () => {
       <form className="flex flex-col gap-5" onSubmit={addOrphanage}>
         <div className="flex flex-col gap-5 md:flex-row">
           <div className="flex flex-col w-full">
-            <label
-              className="text-md font-semibold mb-3"
-              htmlFor="orphanagename"
-            >
+            <label className="text-md font-semibold mb-3" htmlFor="orphanagename">
               Orphanage Name:
             </label>
             <input
@@ -150,6 +150,27 @@ const OrphanageForm = () => {
               required
             />
           </div>
+        </div>
+
+        <div className="flex flex-col w-full">
+          <label className="text-md font-semibold mb-3" htmlFor="district">
+            District:
+          </label>
+          <select
+            className="w-full bg-gray-100 h-[40px] rounded-md px-4  border-none focus-visible:ring-primary !important"
+            id="district"
+            name="district"
+            value={orphanageDetails.district}
+            onChange={detailHandler}
+            required
+          >
+            <option value="">Select District</option>
+            {districts.map((district) => (
+              <option key={district} value={district}>
+                {district}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button
