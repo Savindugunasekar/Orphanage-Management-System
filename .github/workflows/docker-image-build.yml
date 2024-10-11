@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Docker Buildx
+      # Step 2: Set up Docker Buildx for multi-platform builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -28,28 +28,34 @@ jobs:
       # Step 4: Build and push Frontend image to DockerHub
       - name: Build and push Frontend image
         run: |
-          docker build -t savindugunasekara/orphanagefront:latest -f ./adminfrontend/Dockerfile ./adminfrontend
-          docker push savindugunasekara/orphanagefront:latest
+          docker buildx build --platform linux/amd64 -t savindugunasekara/orphanagefront:latest -f ./adminfrontend/Dockerfile ./adminfrontend --push
 
       # Step 5: Build and push Backend image to DockerHub
       - name: Build and push Backend image
         run: |
-          docker build -t savindugunasekara/orphanageback:latest -f ./backend/Dockerfile ./backend
-          docker push savindugunasekara/orphanageback:latest
+          docker buildx build --platform linux/amd64 -t savindugunasekara/orphanageback:latest -f ./backend/Dockerfile ./backend --push
 
   deploy:
+    # Ensures that the deploy job runs only after the build job is successful
+    needs: build
     runs-on: self-hosted
 
     steps:
+      # Step 1: Log in to DockerHub on self-hosted machine
+      - name: Log in to DockerHub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 1: Pull and run Frontend image from DockerHub
-      - name: Pull and run Frontend image
+      # Step 2: Pull and run Frontend container from DockerHub
+      - name: Deploy Frontend container
         run: |
           docker pull savindugunasekara/orphanagefront:latest
-          docker run -d -p 3000:3000 savindugunasekara/orphanagefront:latest
+          docker stop orphanagefront || true && docker rm orphanagefront || true
+          docker run --rm -d --name orphanagefront -p 3000:3000 savindugunasekara/orphanagefront:latest
 
-      # Step 2: Pull and run Backend image from DockerHub
-      - name: Pull and run Backend image
+      # Step 3: Pull and run Backend container from DockerHub
+      - name: Deploy Backend container
         run: |
           docker pull savindugunasekara/orphanageback:latest
-          docker run -d -p 4000:4000 savindugunasekara/orphanageback:latest
+          docker stop orphanageback || true && docker rm orphanageback || true
+          docker run --rm -d --name orphanageback -p 4000:4000 savindugunasekara/orphanageback:latest
