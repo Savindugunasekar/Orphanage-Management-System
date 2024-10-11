@@ -41,19 +41,16 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Step 1: Log in to DockerHub on self-hosted machine
-      - name: Log in to DockerHub
-        run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+  
 
-      # Step 2: Pull and run Frontend container from DockerHub
+      # Step 1: Pull and run Frontend container from DockerHub
       - name: Deploy Frontend container
         run: |
           docker pull savindugunasekara/orphanagefront:latest
           docker stop orphanagefront || true && docker rm orphanagefront || true
           docker run --rm -d --name orphanagefront -p 3000:3000 savindugunasekara/orphanagefront:latest
 
-      # Step 3: Pull and run Backend container from DockerHub
+      # Step 2: Pull and run Backend container from DockerHub
       - name: Deploy Backend container
         run: |
           docker pull savindugunasekara/orphanageback:latest
