@@ -336,3 +336,27 @@ export const districts = [
     "name": "Vavuniya"
   }
 ];
+
+export const rolesList = [
+  {
+    "roleid": 1910,
+    "rolename": "Head"
+  },
+  {
+    "roleid":2525,
+    "rolename": "SocialWorker"
+  },
+  {
+    "roleid": 5528,
+    "rolename": "Staff"
+  },
+  {
+    "roleid": 4,
+    "rolename": "Parents"
+  },
+  {
+    "roleid": 1010,
+    "rolename": "User"
+  }
+]
+

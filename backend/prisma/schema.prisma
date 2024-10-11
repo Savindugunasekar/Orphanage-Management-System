@@ -44,9 +44,16 @@ model approvedapplications {
   applicationid String      @id @db.Uuid
   childid       String      @db.Uuid
   parentid      String      @db.Uuid
+  status        String?     @default("Pending") @db.VarChar(255)
   application   application @relation(fields: [applicationid], references: [applicationid], onDelete: NoAction, onUpdate: NoAction)
   child         child       @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
   users         users       @relation(fields: [parentid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model broadcastmassages {
+  id      Int     @id @default(autoincrement())
+  message String
+  role    String? @db.VarChar
 }
 
 model cases {
@@ -58,6 +65,9 @@ model cases {
   phase1         String?      @default("Ongoing") @db.VarChar(255)
   phase2         String?      @default("Ongoing") @db.VarChar(255)
   phase3         String?      @default("Ongoing") @db.VarChar(255)
+  meetings       Json[]
+  home_visits    Json[]
+  approval_form  Json?
   child          child        @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
   users          users        @relation(fields: [parentid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
   socialworker   socialworker @relation(fields: [socialworkerid], references: [socialworkerid], onDelete: NoAction, onUpdate: NoAction)
@@ -77,6 +87,7 @@ model child {
   cases                cases[]
   orphanage            orphanage              @relation(fields: [orphanageid], references: [orphanageid], onDelete: NoAction, onUpdate: NoAction)
   child_document       child_document[]
+  child_document_temp  child_document_temp[]
 }
 
 model child_document {
@@ -84,9 +95,30 @@ model child_document {
   childid       String        @db.Uuid
   document_type document_type
   document_name String        @db.VarChar(20)
-  status        status_type   @default(pending)
   created_at    DateTime      @default(now()) @db.Timestamp(6)
-  child         child         @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
+  child         child         @relation(fields: [childid], references: [childid], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model child_document_temp {
+  documentid    String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  childid       String        @db.Uuid
+  document_type document_type
+  document_name String        @db.VarChar(20)
+  created_at    DateTime      @default(now()) @db.Timestamp(6)
+  child         child         @relation(fields: [childid], references: [childid], onDelete: Cascade, onUpdate: NoAction, map: "childid_fkey")
+}
+
+model child_temp {
+  childid            String      @id(map: "temp_child_pkey") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orphanageid        String      @db.Uuid
+  name               String      @db.VarChar(100)
+  date_of_birth      DateTime    @db.Date
+  gender             gender_type
+  nationality        String?     @db.VarChar(10)
+  religion           String?     @db.VarChar(10)
+  medicaldetails     String?
+  educationaldetails String?
+  orphanage          orphanage   @relation(fields: [orphanageid], references: [orphanageid], onDelete: NoAction, onUpdate: NoAction, map: "temp_child_orphanageid_fkey")
 }
 
 model messages {
@@ -99,6 +131,15 @@ model messages {
   users        users?   @relation(fields: [sendername], references: [username], onDelete: NoAction, onUpdate: NoAction)
 }
 
+model notification {
+  notificationid String   @id(map: "notification_unique") @db.Uuid
+  reciever_id    String   @db.Uuid
+  read           Boolean  @default(false)
+  created_at     DateTime @default(now()) @db.Timestamp(6)
+  updated_at     DateTime @default(now()) @db.Timestamp(6)
+  users          users    @relation(fields: [reciever_id], references: [userid], onDelete: NoAction, onUpdate: NoAction, map: "receiver_FKEY")
+}
+
 model orphanage {
   orphanageid   String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   headid        String         @unique @db.Uuid
@@ -107,25 +148,28 @@ model orphanage {
   telno         Int?
   head_email    String         @db.VarChar(255)
   capacity      Int?
+  district      String?        @db.VarChar(255)
   child         child[]
+  child_temp    child_temp[]
   users         users          @relation(fields: [headid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
   socialworker  socialworker[]
   staff         staff[]
 }
 
 model request {
-  requestid                     String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  type                          request_type
-  entity                        String       @db.VarChar(20)
-  request                       Json
-  receiver                      String       @db.Uuid
-  status                        status_type  @default(pending)
-  message                       String?      @db.VarChar(255)
-  created_at                    DateTime     @default(now()) @db.Timestamptz(6)
-  updated_at                    DateTime     @default(now()) @db.Timestamptz(6)
-  sender                        String       @db.Uuid
-  users_request_receiverTousers users        @relation("request_receiverTousers", fields: [receiver], references: [userid], onDelete: NoAction, onUpdate: NoAction)
-  users_request_senderTousers   users        @relation("request_senderTousers", fields: [sender], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  requestid                        String       @id @unique(map: "request_unique") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  type                             request_type
+  entity                           String       @db.VarChar(20)
+  entity_key                       String?      @db.Uuid
+  sender_id                        String       @db.Uuid
+  receiver_id                      String       @db.Uuid
+  status                           status_type  @default(pending)
+  created_at                       DateTime     @default(now()) @db.Timestamp(6)
+  updated_at                       DateTime     @default(now()) @db.Timestamp(6)
+  notes                            String?      @db.VarChar(50)
+  target_key                       String?      @db.Uuid
+  users_request_receiver_idTousers users        @relation("request_receiver_idTousers", fields: [receiver_id], references: [userid], onDelete: NoAction, onUpdate: NoAction, map: "receiver_fkey")
+  users_request_sender_idTousers   users        @relation("request_sender_idTousers", fields: [sender_id], references: [userid], onDelete: NoAction, onUpdate: NoAction, map: "sender_fkey")
 }
 
 model socialworker {
@@ -144,28 +188,37 @@ model staff {
 }
 
 model users {
-  userid                          String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  username                        String?                @unique @db.VarChar(50)
-  password                        String?                @db.VarChar(255)
-  email                           String                 @unique @db.VarChar(100)
-  telno                           Int?
-  roles                           Json
-  refreshtoken                    String?                @unique
-  application                     application[]
-  approvedapplications            approvedapplications[]
-  cases                           cases[]
-  messages                        messages[]
-  orphanage                       orphanage?
-  request_request_receiverTousers request[]              @relation("request_receiverTousers")
-  request_request_senderTousers   request[]              @relation("request_senderTousers")
-  socialworker                    socialworker?
-  staff                           staff?
+  userid                             String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username                           String?                @unique @db.VarChar(50)
+  password                           String?                @db.VarChar(255)
+  email                              String                 @unique @db.VarChar(100)
+  telno                              Int?
+  roles                              Json
+  refreshtoken                       String?                @unique
+  notifications                      String[]               @default([])
+  verified                           Boolean?               @default(false)
+  application                        application[]
+  approvedapplications               approvedapplications[]
+  cases                              cases[]
+  messages                           messages[]
+  notification                       notification[]
+  orphanage                          orphanage?
+  request_request_receiver_idTousers request[]              @relation("request_receiver_idTousers")
+  request_request_sender_idTousers   request[]              @relation("request_sender_idTousers")
+  socialworker                       socialworker?
+  staff                              staff?
 }
 
-model broadcastmassages {
-  id      Int     @id @default(autoincrement())
-  message String
-  role    String? @db.VarChar
+model donation {
+  id         Int      @id @default(autoincrement())
+  first_name String?  @db.VarChar(50)
+  last_name  String?  @db.VarChar(50)
+  email      String?  @db.VarChar(100)
+  address    String?  @db.VarChar(255)
+  nic        String?  @db.VarChar(20)
+  country    String?  @db.VarChar(50)
+  phone      String?  @db.VarChar(15)
+  amount     Decimal? @db.Decimal(10, 2)
 }
 
 enum document_type {

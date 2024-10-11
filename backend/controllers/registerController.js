@@ -1,8 +1,21 @@
-const bcrypt = require('bcrypt');
-const db = require('../config/dbConn');
-const { PrismaClient } = require('@prisma/client');
+// Import required modules
+const { PrismaClient } = require('@prisma/client'); // For interacting with the Prisma database
+const bcrypt = require('bcrypt'); // For hashing passwords
+const jwt = require('jsonwebtoken'); // For creating and verifying JSON Web Tokens
+const nodemailer = require('nodemailer'); // For sending emails
+const express = require('express'); // For creating the Express app (if needed)
+
+// Initialize Prisma Client
 const prisma = new PrismaClient();
 
+// Set up Nodemailer transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // You can change this to your email provider
+    auth: {
+        user: process.env.EMAIL, // Your email address
+        pass: process.env.PASSWORD // Your email password or app password
+    }
+});
 const handleNewUser = async (req, res) => {
     const { username, password, telno, email } = req.body;
 
@@ -19,23 +32,41 @@ const handleNewUser = async (req, res) => {
             }
         });
 
-        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         let result;
         if (!user) {
-            // Insert new user
+            // Check if the email is a Gmail address
+            const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+
+            if (isGmail) {
+                const token = jwt.sign({ email }, process.env.VERIFY_TOKEN_SECRET, { expiresIn: '1hr' });
+
+                const verificationUrl = `${process.env.BASE_URL}/verify?token=${token}`;
+
+                // Send verification email
+                await transporter.sendMail({
+                    from: process.env.EMAIL,
+                    to: email,
+                    subject: 'Email Verification',
+                    html: `<h1>Email Confirmation</h1>
+                           <p>Click the link below to verify your email:</p>
+                           <a href="${verificationUrl}">Verify Email</a>`,
+                });
+            }
+
             result = await prisma.users.create({
                 data: {
                     username: username,
                     password: hashedPassword,
                     email: email,
-                    telno: +telno, // Convert to integer otherwise query will fail
-                    roles: { 'User': 1010 }
+                    telno: +telno,
+                    roles: { 'User': 1010 },
+                    verified: !isGmail // Set verified to false if Gmail, true otherwise
                 }
             });
             res.status(201).json({ 'success': `New user ${username} created!` });
-        } else {
+        } else if (!user.username) {
             // Update existing user
             result = await prisma.users.update({
                 where: {
@@ -44,10 +75,14 @@ const handleNewUser = async (req, res) => {
                 data: {
                     username: username,
                     password: hashedPassword,
-                    telno: +telno // Convert to integer otherwise query will fail
+                    telno: +telno,
+                    verified: true
                 }
             });
             res.status(200).json({ 'success': `User ${username} updated!` });
+        }
+        else {
+            res.status(403).json({ 'message': 'User already exists.' });
         }
 
         console.log(result);

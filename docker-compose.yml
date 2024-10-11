@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=g5p15Orphanage_MIS
+  server:
+    image: savindugunasekara/orphanageback:latest
+    container_name: server_container
+    depends_on:
+      - postgres
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:g5p15Orphanage_MIS@sep-g5-p15.cfwis4g2cvju.eu-north-1.rds.amazonaws.com:5432/Orphanage_MIS
+
+  client:
+    image: savindugunasekara/orphanagefront:latest
+    container_name: client_container
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

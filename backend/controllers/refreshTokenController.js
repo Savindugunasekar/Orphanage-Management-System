@@ -57,7 +57,7 @@ const handleRefreshToken = async (req, res) => {
                 {
                     'UserInfo': {
                         "userId": user.userid,
-                        "username": decoded.username,
+                        "username": user.username,
                         "roles": roles,
                         "orphanageid": orphanage?.orphanageid
                     }

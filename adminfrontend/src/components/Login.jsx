@@ -6,7 +6,8 @@ import axios, { axiosPrivate } from "../api/axios";
 import { jwtDecode } from "jwt-decode";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import toast from "react-hot-toast";
-
+import PrimaryButton from "./elements/PrimaryButton";
+import LoginCover from "../assets/images/login.svg";
 
 const ROLES = {
   User: 1010,
@@ -32,6 +33,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     emailRef.current.focus();
@@ -45,6 +47,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       const response = await axios.post(
         "/login",
         JSON.stringify({ email, password }),
@@ -69,23 +72,23 @@ const Login = () => {
 
 
       setAuth({ accessToken, roles, orphanageId, userId, username });
-
-
+      setLoading(false);
       setEmail("");
       setPassword("");
       toast.success("Login Successful");
       // Check roles to navigate
       if (roles.includes(ROLES.Admin)) navigate("/admin", { replace: true });
       else if (roles.includes(ROLES.Head) || roles.includes(ROLES.SocialWorker) || roles.includes(ROLES.Staff)) navigate(`/orphanage/${orphanageId}`, { replace: true });
-      else navigate(`/userdash`, { replace: true });
+      else navigate(`/user/dashboard`, { replace: true });
 
 
     } catch (err) {
+      setLoading(false);
       if (!err?.response) {
         toast.error("No Server Response");
         //setFormError("No Server Response");
       } else if (err.response?.status === 400) {
-        toast.error("Missing Username or Password");
+        toast.error("Missing Email or Password");
         //setFormError("Missing Username or Password");
       } else if (err.response?.status === 401) {
         toast.error("Unauthorized");
@@ -109,7 +112,7 @@ const Login = () => {
 
 
           }}
-          className="w-full h-full"
+          className="w-full h-full background-cover bg-center ba"
         >
           <h1 className="px-10 pt-48 text-6xl font-bold text-primary ">Join Our Journey: Adopt or Donate to Make a Difference</h1>
         </div>
@@ -118,7 +121,7 @@ const Login = () => {
 
         <img className="relative object-cover w-full h-full lg:hidden" src="https://weareworldchallenge.com/wp-content/uploads/2024/01/Orphanages.jpg" alt="" />
 
-        <div className="absolute w-full lg:w-2/5 sm:px-36 lg:px-10">
+        <div className=" absolute w-full lg:w-2/5 sm:px-36 lg:px-10">
           <p
             ref={errRef}
             className={
@@ -132,7 +135,7 @@ const Login = () => {
             Log In
           </h1>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-5 backdrop-blur-lg rounded-xl">
+          <form className="flex flex-col gap-5 p-5 backdrop-blur-lg rounded-xl">
             <div className="flex flex-col w-full">
               <label className="mb-2 text-lg font-semibold text-primary" htmlFor="email">
                 Email:
@@ -164,12 +167,13 @@ const Login = () => {
             </div>
 
             <div className="items-center justify-between mt-6 ">
-              <button
-                type="submit"
-                className="w-full px-6 py-3 font-semibold text-white transition-all duration-300 border rounded-lg bg-primary hover:bg-white hover:text-primary border-primary"
-              >
-                Log in
-              </button>
+              <PrimaryButton
+                text={'Log in'}
+                onClick={handleSubmit}
+                disabled={email === "" || password === ""}
+                loading={loading}
+                className={'w-full mb-5'} />
+
 
               <div className="mt-5 text-white lg:text-gray-700">
                 Don't have an account?{" "}

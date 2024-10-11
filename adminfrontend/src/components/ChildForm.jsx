@@ -1,6 +1,7 @@
 import React from 'react'
 import { ChildAddFormStep1 } from './ChildAddFormStep1';
 import { ChildAddFormStep2 } from './ChildAddFormStep2';
+import { RiCloseLargeFill } from 'react-icons/ri';
 const tabs = ['Information', 'Photo'];
 
 export const ChildForm = ({ setFormVisibility }) => {
@@ -20,36 +21,36 @@ export const ChildForm = ({ setFormVisibility }) => {
     }
 
     return (
-        <div className="fixed inset-0 flex  justify-center bg-black bg-opacity-50 overflow-auto px-10 z-10">
-            <section className=" px-8 py-4 mx-auto bg-white rounded-md shadow-md my-5 w-[80vw]">
 
-                <div className="flex justify-between items-center mb-3">
-                    <h1 className=" font-sans text-2xl antialiased leading-snug text-black border-b-2 p-2 rounded">Child Detail Form</h1>
-                    <button className="px-2 py-1 bg-red-500 text-white rounded-md" onClick={() => setFormVisibility(false)}>Close</button>
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm py-20 z-300">
+            <div
+                id="scrollview"
+                className="bg-white rounded drop-shadow-lg w-fit h-fit mt-10 mx-10 border ">
+
+
+                <div className="flex flex-row justify-between">
+                    <h2 className="m-4 text-2xl font-semibold text-gray-800">Child Detail Form</h2>
+                    {/* close button */}
+                    <div className='flex flex-row justify-end my-auto mx-5'>
+                        <RiCloseLargeFill
+                            onClick={() => setFormVisibility(false)}
+                            className='bg-red-500 rounded-full text-4xl p-2 text-white drop-shadow hover:bg-red-700' />
+                    </div>
                 </div>
 
-                {/* Tab selection area */}
-                <div className="relative mt-5 ">
+
+                <div id="report" className="w-fit bg-gray-100 p-6">
                     {/* Mobile dropdown */}
                     <div className="sm:hidden">
-                        <label htmlFor="Tab" className="sr-only">
-                            Tab
+                        <label className="text-white bg-black w-fit p-2 rounded-lg">
+                            {currentTab}
                         </label>
-                        <select
-                            id="Tab"
-                            className="w-full rounded-md border-gray-200"
-                            value={currentTab}
-                        >
-                            {tabs.map((tab) => (
-                                <option key={tab} value={tab}> </option>
-                            ))}
-                        </select>
                     </div>
 
                     {/* Desktop tabs */}
                     <div className="hidden sm:block ">
                         <div className="bg-orange-100 rounded ">
-                            <nav className="-mb-px flex gap-1 justify-around p-1 overflow-auto" aria-label="Tabs">
+                            <nav className="-mb-px flex gap-1 justify-around p-1 overflow-auto " aria-label="Tabs">
                                 {tabs.map((tab, index) => (
                                     <div
                                         key={tab}
@@ -73,7 +74,7 @@ export const ChildForm = ({ setFormVisibility }) => {
                 </div>
 
 
-            </section>
+            </div>
         </div>
     )
 }

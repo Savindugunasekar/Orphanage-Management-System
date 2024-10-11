@@ -7,11 +7,11 @@ const AgeSlider = ({ ageRange, setAgeRange }) => { // Receive ageRange and setAg
   const max = 18;
 
   return (
-    <div className="flex flex-row px-2 justify-center items-center">
+    <div className="flex flex-row px-2 justify-center items-center z-0">
       <div className="mx-3">Age</div>
       <label className="mx-3">{ageRange[0]}</label>
       <ReactSlider
-        value={ageRange} // Use ageRange from props
+        value={ageRange ? ageRange : [min, max]} // Use ageRange from props
         min={min}
         max={max}
         onChange={setAgeRange} // Use setAgeRange to update the state

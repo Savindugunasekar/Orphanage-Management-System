@@ -3,7 +3,7 @@ import React from 'react'
 export const ConfirmationModal = ({ head, body, handleConfirmation, setVisibility }) => {
     return (
         <div>
-            <div id="YOUR_ID" className="fixed z-20 inset-0 overflow-y-auto">
+            <div id="YOUR_ID" className="fixed inset-0 flex items-center justify-center backdrop-blur-sm p-auto z-300">
                 <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     <div className="fixed inset-0 transition-opacity" aria-hidden="true">
                         <div className="absolute inset-0 bg-gray-500 opacity-75"></div>

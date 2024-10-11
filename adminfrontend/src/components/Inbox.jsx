@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAuth";
+import BroadcastMsg from "./BroadcastMsg";
 
 const Inbox = () => {
   const { auth } = useAuth();
@@ -92,18 +93,17 @@ const Inbox = () => {
     }
   };
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen mt-20">
       {/* Sidebar */}
 
       <div
         className={`w-1/4 p-4 bg-gray-200`}
       >
         <button
-          className={`w-full text-left p-3 text-xl  mb-2 ${
-            activeView === "inbox"
-              ? "bg-primary text-white"
-              : "bg-white text-primary"
-          } rounded`}
+          className={`w-full text-left p-3 text-xl  mb-2 ${activeView === "inbox"
+            ? "bg-primary text-white"
+            : "bg-white text-primary"
+            } rounded`}
           onClick={() => {
             setActiveView("inbox");
             setSelectedMessage(null);
@@ -112,11 +112,10 @@ const Inbox = () => {
           Inbox
         </button>
         <button
-          className={`w-full text-left p-3 text-xl mb-2 ${
-            activeView === "sent"
-              ? "bg-primary text-white"
-              : "bg-white text-primary"
-          } rounded`}
+          className={`w-full text-left p-3 text-xl mb-2 ${activeView === "sent"
+            ? "bg-primary text-white"
+            : "bg-white text-primary"
+            } rounded`}
           onClick={() => {
             setActiveView("sent");
             setSelectedMessage(null);
@@ -125,11 +124,10 @@ const Inbox = () => {
           Sent
         </button>
         <button
-          className={`w-full text-left p-3 text-xl ${
-            activeView === "compose"
-              ?"bg-primary text-white"
-              : "bg-white text-primary"
-          } rounded`}
+          className={`w-full text-left p-3 text-xl mb-2  ${activeView === "compose"
+            ? "bg-primary text-white"
+            : "bg-white text-primary"
+            } rounded`}
           onClick={() => {
             setActiveView("compose");
             setSelectedMessage(null);
@@ -137,13 +135,25 @@ const Inbox = () => {
         >
           Compose
         </button>
+        <button
+          className={`w-full text-left p-3 text-xl ${activeView === "broadcast"
+            ? "bg-primary text-white"
+            : "bg-white text-primary"
+            } rounded`}
+          onClick={() => {
+            setActiveView("broadcast");
+            setSelectedMessage(null);
+          }}
+        >
+          Broadcast Message
+        </button>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 bg-gray-50 p-4 px-10">
         {activeView === "inbox" && !selectedMessage && (
           <div>
-           
+
             {/* List of messages */}
             {auth.roles.includes(7788) ? (
               <ul>
@@ -153,9 +163,9 @@ const Inbox = () => {
                     className="p-2 border-b border-gray-200 cursor-pointer hover:bg-gray-200"
                     onClick={() => handleViewMessage(message)}
                   ><div>
-                  <p className="font-bold">{message.sendername}</p>
-                  {message.subject}
-               </div>
+                      <p className="font-bold">{message.sendername}</p>
+                      {message.subject}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -187,10 +197,10 @@ const Inbox = () => {
                   className="p-2 border-b border-gray-200 cursor-pointer hover:bg-gray-200"
                   onClick={() => handleViewMessage(message)}
                 > <div>
-                   <p className="font-bold">{message.sendername}</p>
-                   {message.subject}
-                </div>
-                 
+                    <p className="font-bold">{message.sendername}</p>
+                    {message.subject}
+                  </div>
+
                 </li>
               ))}
             </ul>
@@ -257,6 +267,9 @@ const Inbox = () => {
               </button>
             </form>
           </div>
+        )}
+        {activeView === "broadcast" && (
+          <BroadcastMsg />
         )}
       </div>
     </div>

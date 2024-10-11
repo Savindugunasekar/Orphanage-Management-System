@@ -15,13 +15,13 @@ const corsOptions = require('./config/corsOptions')
 const credentials = require('./middleware/credentials')
 const cookieParser = require('cookie-parser')
 
-//whether the server allows cross-origin requests to include credentials like cookies, authorization headers
+
 app.use(credentials)
 
-//identify which origins can access and blcok others
+
 app.use(cors(corsOptions))
 
-//handle images
+
 app.use(express.urlencoded({ extended: false }))
 
 app.use(fileUpload())
@@ -30,15 +30,9 @@ app.use(express.json())
 
 app.use(cookieParser())
 
-//importing custom middleware
+
 
 const verifyJWT = require('./middleware/verifyJWT');
-
-
-
-
-
-//routes
 
 app.use('/login', require('./routes/login'))
 
@@ -48,8 +42,10 @@ app.use('/refresh', require('./routes/refresh'))
 
 app.use('/logout', require('./routes/logout'));
 
+app.use('/verify', require('./routes/verify'));
 
-//for functiosn below we have req.roles an req.user as well automatically
+app.use('/donate', require('./routes/api/payment'))
+
 
 app.use(verifyJWT)
 
@@ -68,11 +64,18 @@ app.use('/request', require('./routes/api/request'))
 
 app.use('/file', require('./routes/api/file'))
 
+app.use('/document', require('./routes/api/document'))
+
+app.use('/broadcast', require('./routes/api/broadcast'))
+
+app.use('/application', require('./routes/api/application'))
+
+app.use('/case', require('./routes/api/case'))
+
+app.use('/notifications', require('./routes/api/notifications'))
 
 
-app.use ('/application',require('./routes/api/application'))
 
-app.use('/case',require('./routes/api/case'))
 
 
 

@@ -1,69 +1,128 @@
 import React, { useEffect, useState } from 'react'
 import { ChildPreview } from './ChildPreview'
+import { PDFView } from './PDFView'
+import toast from 'react-hot-toast'
+import useAxiosPrivate from '../hooks/useAxiosPrivate'
+import PrimaryButton from './elements/PrimaryButton'
+import Badge from './elements/Badge'
 
-export const RequestTable = ({ requests, setVisibility, setSelectedRequest, selectedRequest }) => {
-    useEffect(() => { console.log(requests) }, [requests])
+export const RequestTable = ({ requests, setChildVisibility, setSelectedRequest, selectedRequest, setFileVisibility, role }) => {
+
+    useEffect(() => {
+        setPendingRequests(requests.filter(request => request.status === 'pending').sort((a, b) => { return new Date(b.created_at) - new Date(a.created_at); }))
+        setApprovedRequests(requests.filter(request => request.status === 'approved').sort((a, b) => { return new Date(b.created_at) - new Date(a.created_at); }))
+        setRejectedRequests(requests.filter(request => request.status === 'rejected').sort((a, b) => { return new Date(b.created_at) - new Date(a.created_at); }))
+    }, [requests])
+
+    const axiosPrivate = useAxiosPrivate()
+
+    const handleClick = async (request) => {
+        await setSelectedRequest(request)
+        switch (request.entity) {
+            case 'child':
+                setChildVisibility(true)
+                break;
+            case 'document':
+                setFileVisibility(true)
+                break;
+            default:
+                break;
+        }
+    }
+
+    const [pendingRequests, setPendingRequests] = useState([])
+    const [approvedRequests, setApprovedRequests] = useState([])
+    const [rejectedRequests, setRejectedRequests] = useState([])
+
+    const [selectedTab, setSelectedTab] = useState('Pending')
+
+    console.log(approvedRequests)
 
     return (
-        <div>
-            <div
-                className="rounded-sm border bg-white px-5 pb-2.5 pt-6 shadow-default mb-5 sm:px-7.5 xl:pb-1 min-h-screen"
-            >
-                <h4 className="mb-6 text-xl font-bold text-black ">
-                    Requests
-                </h4>
-
-                <div className="flex flex-col">
-                    <div className="grid grid-cols-5 rounded-sm">
-                        <div className="p-2.5 text-center xl:p-5">
-                            <h5 className="text-sm font-medium uppercase xsm:text-base ">Type</h5>
-                        </div>
-                        <div className="p-2.5 text-center xl:p-5">
-                            <h5 className="text-sm font-medium uppercase xsm:text-base">Entity</h5>
-                        </div>
-                        <div className="p-2.5 text-center xl:p-5">
-                            <h5 className="text-sm font-medium uppercase xsm:text-base">Date</h5>
-                        </div>
-                        <div className="p-2.5 text-center xl:p-5">
-                            <h5 className="text-sm font-medium uppercase xsm:text-base">Status</h5>
-                        </div>
-                        <div className="p-2.5 text-center xl:p-5">
-                            <h5 className="text-sm font-medium uppercase xsm:text-base">View</h5>
-                        </div>
-
-                    </div>
-                    {requests.map((request) => (
-                        <div key={request.requestid} className="grid grid-cols-5 border-b border-stroke  text-gray-500 font-medium rounded">
-                            <div className="flex items-center justify-center p-2.5 xl:p-5">
-                                <p className="hidden font-medium  sm:block"> {request.type}</p>
-                            </div>
-
-                            <div className="flex items-center justify-center p-2.5 xl:p-5">
-                                <p className="hidden font-medium  sm:block">{request.entity}</p>
-                            </div>
-
-                            <div className="flex items-center justify-center p-2.5 xl:p-5">
-                                <p >{new Date(request.created_at).toISOString().split('T')[0]}</p>
-                            </div>
-
-                            <div className="flex items-center justify-center p-2.5 xl:p-5">
-                                <p className={`${request.status === 'pending' ? 'bg-blue-500' : request.status === 'approved' ? 'bg-green-500' : 'bg-red-500'} text-white rounded-full px-2`}>{request.status}</p>
-                            </div>
-                            <div className="m-auto">
-                                <button
-                                    onClick={() => {
-                                        setSelectedRequest(request)
-                                        setVisibility(true)
-                                    }}
-                                    className="px-4 py-2 leading-5 text-white transition-colors duration-200 transform bg-orange-500 rounded-md hover:bg-orange-700">
-                                    view
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+        <div className="overflow-x-auto px-2">
+            <h1 className='text-4xl font-bold text-center text-gray-800'>Child Profile Requests</h1>
+            <div role="tablist" className="tabs tabs-lifted w-fit my-5">
+                <a role="tab" onClick={() => setSelectedTab('Pending')} className={`tab ${selectedTab == 'Pending' && 'tab-active text-yellow-600'}  text-xl`}>Pending</a>
+                <a role="tab" onClick={() => setSelectedTab('Accepted')} className={`tab ${selectedTab == 'Accepted' && 'tab-active text-green-600'}  text-xl`}>Approved</a>
+                <a role="tab" onClick={() => setSelectedTab('Rejected')} className={`tab ${selectedTab == 'Rejected' && 'tab-active text-red-600'}  text-xl`}>Rejected</a>
             </div>
 
+            <div >
+
+                {selectedTab == 'Pending' && pendingRequests.map((request, index) => (
+                    <div
+                        key={index}
+                        className="py-2">
+
+                        <div className="card bg-transparent border border-orange-900 rounded-md text-black w-full">
+                            <div className="card-body">
+                                <h2 className="card-title">{request.type.toUpperCase() + " " + request.entity} </h2>
+                                <p>status :
+                                    <span
+                                        className='bg-yellow-600 indicator-item indicator-middle indicator-center badge text-white mx-1'>{request.status}
+                                    </span></p>
+
+                                <p >created at : {request.created_at.split('T')[0]}</p>
+                                <div className="card-actions justify-end">
+                                    <PrimaryButton
+                                        text='view'
+                                        onClick={() => handleClick(request)} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+                {selectedTab == 'Accepted' && approvedRequests.map((request, index) => (
+                    <div
+                        key={index}
+                        className="py-2">
+
+                        <div className="card bg-transparent border border-orange-900 rounded-md text-black w-full">
+                            <div className="card-body">
+                                <h2 className="card-title"> {request.type.toUpperCase() + " " + request.entity} </h2>
+                                <p>status :
+                                    <span
+                                        className='bg-green-600 indicator-item indicator-middle indicator-center badge text-white mx-1'>{request.status}
+                                    </span></p>
+                                <p >created at : {request.created_at.split('T')[0]}</p>
+
+                                <div className="card-actions justify-end">
+                                    <PrimaryButton
+                                        text='view'
+                                        onClick={() => handleClick(request)} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+                {selectedTab == 'Rejected' && rejectedRequests.map((request, index) => (
+                    <div
+                        key={index}
+                        className="py-2">
+
+                        <div className="card bg-transparent border border-orange-900 rounded-md text-black w-full">
+                            <div className="card-body">
+                                <h2 className="card-title">{request.type.toUpperCase() + " " + request.entity} </h2>
+                                <p>status :
+                                    <span
+                                        className='bg-red-600 indicator-item indicator-middle indicator-center badge text-white mx-1'>{request.status}
+                                    </span></p>
+                                <p >created at : {request.created_at.split('T')[0]}</p>
+                                <div className="card-actions justify-end">
+                                    <PrimaryButton
+                                        text='view'
+                                        onClick={() => handleClick(request)} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+
+            </div>
         </div>
+
     )
 }

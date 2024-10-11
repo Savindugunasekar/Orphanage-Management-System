@@ -1,5 +1,5 @@
 const { addChild, updateChild, deleteChild } = require("./childController");
-const { moveFileInS3 } = require('./fileController');
+const { moveFileInS3, copyFileInS3, deleteFileInS3, renameFileInS3 } = require('./fileController');
 const { s3 } = require('../config/s3Client');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -15,11 +15,73 @@ const getRequest = async (req, res) => {
         })
         if (!request) return res.status(404).json({ success: false, message: 'Resource not found' });
         //check if user is authorized to view request
-        if (request.sender !== req.userId && request.receiver !== req.userId) return res.sendStatus(401);
+        if (request.sender_id !== req.userId && request.receiver_id !== req.userId) return res.sendStatus(401);
+
+        let data;
+        if (request.entity == 'child') {
+            data = await prisma.child_temp.findUnique({
+                where: {
+                    childid: request.entity_key
+                }
+            })
+        }
+        console.log('child', data)
 
         res.status(200).json({
             success: true,
-            request: request
+            request,
+            data
+        })
+    } catch (error) {
+        console.error('Database query failed:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching request.'
+        });
+    }
+
+}
+
+const getRequestCountByChild = async (req, res) => {
+    const childid = req.params.childId;
+
+    try {
+        const requestCount = await prisma.request.count({
+            where: {
+                target_key: childid,
+                status: 'pending'
+            }
+        })
+        console.log(requestCount)
+        res.status(200).json({
+            success: true,
+            requestCount
+        })
+    } catch (error) {
+        console.error('Database query failed:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching request.'
+        });
+    }
+
+}
+
+
+const getRequestCountByDocument = async (req, res) => {
+    const documentid = req.params.documentId;
+
+    try {
+        const requestCount = await prisma.request.count({
+            where: {
+                entity_key: documentid,
+                status: 'pending'
+            }
+        })
+        console.log('doc count', requestCount)
+        res.status(200).json({
+            success: true,
+            requestCount
         })
     } catch (error) {
         console.error('Database query failed:', error);
@@ -35,7 +97,7 @@ const getSentRequests = async (req, res) => {
     try {
         const requests = await prisma.request.findMany({
             where: {
-                sender: req.userId
+                sender_id: req.userId
             },
             select: {
                 requestid: true,
@@ -62,7 +124,7 @@ const getReceivedRequests = async (req, res) => {
     try {
         const requests = await prisma.request.findMany({
             where: {
-                receiver: req.userId
+                receiver_id: req.userId
             },
             select: {
                 requestid: true,
@@ -89,7 +151,7 @@ const createAddChildRequest = async (req, res) => {
     const { orphanageid } = req.body;
     //check if orphanageid is present and user is authorized to create request
     if ((!req?.orphanageid) || (orphanageid !== req.orphanageid)) {
-        return res.status(401).status({ success: false, message: 'Unauthorized' });
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
     try {
@@ -103,30 +165,39 @@ const createAddChildRequest = async (req, res) => {
         //check if receiver orphanage exists
         if (!receiverOrphanage) return res.status(404).json({ success: false, message: 'Resource not found' });
         //create request in database
-        const newRequest = await prisma.request.create({
-            data: {
-                type: 'create',
-                entity: 'child',
-                request: req.body,
-                receiver: receiverOrphanage.headid,
-                sender: req.userId,
-                message: req.body.message
-            },
-            select: {
-                requestid: true,
-                type: true,
-                entity: true,
-                status: true,
-                created_at: true
-            }
-        })
+        const result = await prisma.$transaction(async (prisma) => {
 
-        //const photoURL = await getUploadURL('request', 'child');
+            const temp_child = await prisma.child_temp.create({
+                data: req.body,
+                select: {
+                    childid: true
+                }
+            });
+
+            const newRequest = await prisma.request.create({
+                data: {
+                    type: 'create',
+                    entity: 'child',
+                    entity_key: temp_child.childid,
+                    receiver_id: receiverOrphanage.headid,
+                    sender_id: req.userId,
+                    target_key: temp_child.childid
+                },
+                select: {
+                    requestid: true,
+                    type: true,
+                    entity: true,
+                    status: true,
+                    created_at: true
+                }
+            })
+            return newRequest;
+        })
 
         res.status(200).json({
             success: true,
             message: 'Request created successfully.',
-            data: newRequest
+            data: result
         })
     } catch (error) {
         console.error('Database query failed:', error);
@@ -153,28 +224,34 @@ const handleAddChildRequest = async (req, res) => {
         //check if request exists
         if (!request) return res.status(404).json({ 'success': false, message: 'Resource not found' });
         //check if request is of type create and entity is child
-        if (request.type !== 'create' || request.entity !== 'child' || request.status === 'approved' || request.status === 'rejected') return res.status(400).json({ 'success': false, message: 'Bad request' });
+        if (request.type !== 'create' || request.entity !== 'child' || request.status === 'approved' || request.status === 'rejected') return res.sendStatus(400);
         //check if user is authorized to handle request
-        if (request.receiver !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
+        if (request.receiver_id !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
         //if request is accepted, add child
         let result;
-        console.log(request.request)
+        console.log(request.entity_key)
+
         if (response === 'approved') {
-            req.body = request.request;
+
+            req.body = await prisma.child_temp.findUnique({
+                where: {
+                    childid: request.entity_key
+                }
+            })
             result = await addChild(req);
             if (result === 500) return res.status(result).json({ success: false, message: 'An error occurred' });
             else if (result === 401) return res.status(result).json({ success: false, message: 'Unauthorized' });
 
             const params = {
                 Bucket: process.env.S3_BUCKET,
-                Prefix: `request/${requestid}`, // Search for objects with this prefix
+                Prefix: `request/photo/${requestid}`, // Search for objects with this prefix
                 MaxKeys: 1 // Limit the number of keys returned
             };
 
             const data = await s3.listObjectsV2(params).promise();
             if (data.Contents.length > 0) {
-                const destinationKey = `child/${result.childid}.` + data.Contents[0].Key.split('.').pop();
-                moveFileInS3(data.Contents[0].Key, destinationKey);
+                const destinationKey = `child/photo/${result.childid}.` + data.Contents[0].Key.split('.').pop();
+                copyFileInS3(data.Contents[0].Key, destinationKey);
             }
 
         }
@@ -195,7 +272,6 @@ const handleAddChildRequest = async (req, res) => {
             }
         })
 
-
         res.status(200).json({ 'success': true, data: updatedRequest });
 
     } catch (error) {
@@ -214,43 +290,60 @@ const createEditChildRequest = async (req, res) => {
             where: {
                 childid: childid
             },
-            select: { orphanageid: true }
+            include: {
+                orphanage: {
+                    select: {
+                        headid: true
+                    }
+                }
+            }
         })
+        console.log(child)
 
         if (!child) return res.status(404).json({ success: false, message: 'Resource not found' });
 
         if ((!req.orphanageid) || (child.orphanageid !== req.orphanageid)) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
 
-        const orphanage = await prisma.orphanage.findUnique({
-            where: {
-                orphanageid: child.orphanageid
-            },
-            select: { headid: true }
-        })
 
-        if (!orphanage) return res.status(404).json({ success: false, message: 'Resource not found' });
+        const request = await prisma.$transaction(async (prisma) => {
 
-        const newRequest = await prisma.request.create({
-            data: {
-                type: 'update',
-                entity: 'child',
-                request: req.body,
-                receiver: orphanage.headid,
-                sender: req.userId
-            },
-            select: {
-                requestid: true,
-                type: true,
-                entity: true,
-                status: true,
-                created_at: true
-            }
+            const newChild = await prisma.child_temp.create({
+                data: {
+                    orphanageid: req.orphanageid,
+                    name: req.body.name,
+                    date_of_birth: new Date(req.body.date_of_birth),
+                    gender: req.body.gender,
+                    religion: req.body.religion,
+                    nationality: req.body.nationality,
+                    medicaldetails: req.body.medicaldetails,
+                    educationaldetails: req.body.educationaldetails,
+                }
+            })
+            const newRequest = await prisma.request.create({
+                data: {
+                    type: 'update',
+                    entity: 'child',
+                    entity_key: newChild.childid,
+                    receiver_id: child.orphanage.headid,
+                    sender_id: req.userId,
+                    target_key: childid
+                },
+                select: {
+                    requestid: true,
+                    type: true,
+                    entity: true,
+                    status: true,
+                    created_at: true
+                }
+            })
+            return newRequest
+
         })
 
         res.status(200).json({
             success: true,
             message: 'Request created successfully.',
-            data: newRequest
+            data: request
         })
 
     } catch (error) {
@@ -277,12 +370,29 @@ const handleEditChildRequest = async (req, res) => {
         //check if request exists
         if (!request) return res.sendStatus(404);
         //check if request is of type update and entity is child
-        if (request.type !== 'update' || request.entity !== 'child' || request.status === 'approved' || request.status === 'rejected') return res.status(400).json({ 'success': false, message: 'Bad request' });
+        if (request.type !== 'update' || request.entity !== 'child' || request.status === 'approved' || request.status === 'rejected') return res.sendStatus(400);
         //check if user is authorized to handle request
-        if (request.receiver !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
+        if (request.receiver_id !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
         //if request is accepted, update child
         if (response === 'approved') {
-            req.body = request.request;
+
+            const childid = request.target_key;
+            const child = await prisma.child_temp.findUnique({
+                where: {
+                    childid: request.entity_key
+                },
+                select: {
+                    name: true,
+                    date_of_birth: true,
+                    gender: true,
+                    religion: true,
+                    nationality: true,
+                    medicaldetails: true,
+                    educationaldetails: true,
+
+                }
+            });
+            req.body = { childid, ...child };
             const result = await updateChild(req);
             if (result === 500) return res.status(result).json({ 'success': false, message: 'An error occurred' });
             else if (result === 401) return res.status(result).json({ 'success': false, message: 'Unauthorized' });
@@ -318,12 +428,21 @@ const handleEditChildRequest = async (req, res) => {
 
 const createDeleteChildRequest = async (req, res) => {
     const { childid } = req.body;
+    console.log(req.body)
+
     try {
         const child = await prisma.child.findUnique({
             where: {
                 childid: childid
             },
-            select: { orphanageid: true }
+            include: {
+                orphanage: {
+                    select: {
+                        orphanageid: true,
+                        headid: true
+                    }
+                }
+            }
         })
 
         if (!child) return res.status(404).json({
@@ -331,38 +450,47 @@ const createDeleteChildRequest = async (req, res) => {
             message: 'Resource not found'
         });
 
-        if ((!req.orphanageid) || (child.orphanageid !== req.orphanageid)) return res.status(401).json({
+        if ((!req.orphanageid) || (child.orphanage.orphanageid !== req.orphanageid)) return res.status(401).json({
             success: false,
             message: 'Unauthorized'
         });
 
-        const orphanage = await prisma.orphanage.findUnique({
-            where: {
-                orphanageid: child.orphanageid
-            },
-            select: { headid: true }
-        })
+        let newRequest;
 
-        if (!orphanage) return res.status(404).json({
-            success: false,
-            message: 'Resource not found'
-        });
+        await prisma.$transaction(async (prisma) => {
+            const temp_child = await prisma.child_temp.create({
+                data: {
+                    orphanageid: child.orphanageid,
+                    name: child.name,
+                    date_of_birth: new Date(child.date_of_birth),
+                    gender: child.gender,
+                    religion: child.religion,
+                    nationality: child.nationality,
+                    medicaldetails: child.medicaldetails,
+                    educationaldetails: child.educationaldetails,
+                },
+                select: {
+                    childid: true
+                }
+            });
 
-        const newRequest = await prisma.request.create({
-            data: {
-                type: 'delete',
-                entity: 'child',
-                request: req.body,
-                receiver: orphanage.headid,
-                sender: req.userId
-            },
-            select: {
-                requestid: true,
-                type: true,
-                entity: true,
-                status: true,
-                created_at: true
-            }
+            newRequest = await prisma.request.create({
+                data: {
+                    type: 'delete',
+                    entity: 'child',
+                    entity_key: temp_child.childid,
+                    receiver_id: child.orphanage.headid,
+                    sender_id: req.userId,
+                    target_key: childid
+                },
+                select: {
+                    requestid: true,
+                    type: true,
+                    entity: true,
+                    status: true,
+                    created_at: true
+                }
+            })
         })
 
         res.status(200).json({
@@ -381,6 +509,7 @@ const createDeleteChildRequest = async (req, res) => {
 }
 
 const handleDeleteChildRequest = async (req, res) => {
+    //consistency issue in temp_docs
     const { requestid, response } = req.body;
     //check if requestid and response are present
     if (!requestid || !response) return res.status(400).json({ 'success': false, message: 'Bad Request' });
@@ -397,13 +526,26 @@ const handleDeleteChildRequest = async (req, res) => {
         //check if request is of type delete and entity is child
         if (request.type !== 'delete' || request.entity !== 'child' || request.status === 'approved' || request.status === 'rejected') return res.sendStatus(400);
         //check if user is authorized to handle request
-        if (request.receiver !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
+        if (request.receiver_id !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
         //if request is accepted, delete child
         if (response === 'approved') {
-            req.body = request.request;
+
+            req.body = { childid: request.target_key };
+
             const result = await deleteChild(req);
             if (result === 500) return res.status(result).json({ 'success': false, message: 'An error occurred' });
             else if (result === 404) return res.status(result).json({ 'success': false, message: 'Resource not found' });
+
+            //check if photos exists in s3 bucket
+            const params = {
+                Bucket: process.env.S3_BUCKET,
+                Prefix: `child/photo/${req.body.childid}`, // Search for objects with this prefix
+            };
+
+            const data = await s3.listObjectsV2(params).promise();
+            for (let i = 0; i < data.Contents.length; i++) {
+                deleteFileInS3(data.Contents[i].Key);
+            }
         }
         //update request with response
         const updatedRequest = await prisma.request.update({
@@ -434,7 +576,10 @@ const handleDeleteChildRequest = async (req, res) => {
 
 const createChildDocumentRequest = async (req, res) => {
 
-    const { childid } = req.body;
+    const { childid,
+        document_type,
+        document_name,
+        tempId } = req.body;
 
     try {
         //fetch child from database
@@ -456,39 +601,38 @@ const createChildDocumentRequest = async (req, res) => {
         if ((!req?.orphanageid) || (child.orphanage.orphanageid !== req.orphanageid)) {
             return res.status(401).status({ success: false, message: 'Unauthorized' });
         }
-
-        const result = await prisma.$transaction(async (prisma) => {
-            const document = await prisma.child_document.create({
+        //for consistency
+        await prisma.$transaction(async (prisma) => {
+            //create temp document data in database
+            const newDocument = await prisma.child_document_temp.create({
                 data: {
                     childid: childid,
-                    document_type: req.body.document_type,
-                    document_name: req.body.document_name
+                    document_type: document_type,
+                    document_name: document_name
                 },
                 select: {
-                    documentid: true
+                    documentid: true,
                 }
-            });
-
+            })
+            //create request in database
             await prisma.request.create({
                 data: {
                     type: 'create',
-                    entity: 'Document',
-                    request: document.documentid,
-                    receiver: child.orphanage.headid,
-                    sender: req.userId,
-                    message: req.body.message
+                    entity: 'document',
+                    entity_key: newDocument.documentid,
+                    sender_id: req.userId,
+                    receiver_id: child.orphanage.headid,
+                    target_key: newDocument.documentid
                 }
             });
+            //rename temp document in s3 bucket
+            await renameFileInS3(`request/document/${tempId}.pdf`, `request/document/${newDocument.documentid}.pdf`);
 
-            return { document };
-        });
-
-        if (!result) return res.status(500).json({ success: false, message: 'An error occurred' });
+        })
 
         res.status(200).json({
             success: true,
-            message: 'Request created successfully.',
-            data: document
+            message: 'Request created successfully.'
         })
 
     } catch (error) {
@@ -512,62 +656,49 @@ const handleChildDocumentRequest = async (req, res) => {
                 requestid: requestid
             }
         })
+
         //check if request exists
         if (!request) return res.status(404).json({ 'success': false, message: 'Resource not found' });
         //check if request is of type create and entity is document
-        if (request.type !== 'create' || request.entity !== 'document' || request.status === 'approved' || request.status === 'rejected') return res.status(400).json({ 'success': false, message: 'Bad request' });
+        if (request.type !== 'create' || request.entity !== 'document' || request.status === 'approved' || request.status === 'rejected') return res.sendStatus(400);
         //check if user is authorized to handle request
-        if (request.receiver !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
+        if (request.receiver_id !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
         //if request is accepted, add document
         if (response === 'approved') {
-            const document = await prisma.child_document.findUnique({
+
+            const documentId = request.entity_key;
+
+            const document = await prisma.child_document_temp.findUnique({
                 where: {
-                    documentid: request.request
+                    documentid: documentId
                 }
             })
-            if (!document) return res.status(404).json({ 'success': false, message: 'Resource not found' });
 
-            //check if document exists in s3 bucket
-            const params = {
-                Bucket: process.env.S3_BUCKET,
-                Prefix: `child/${documentid}`, // Search for objects with this prefix
-                MaxKeys: 1 // Limit the number of keys returned
-            };
+            await prisma.child_document.create({
+                data: document
+            });
 
-            const data = await client.listObjectsV2(params).promise();
-            if (data.Contents.length == 0) {
-                return res.status(404).json({ 'success': false, message: 'Resource not found' });
-            }
+            copyFileInS3(`request/document/${documentId}.pdf`, `child/document/${documentId}.pdf`);
 
         }
 
-        const result = await prisma.$transaction(async (prisma) => {
-            const updatedRequest = await prisma.request.update({
-                where: {
-                    requestid: requestid
-                },
-                data: {
-                    status: response
-                },
-                select: {
-                    requestid: true,
-                    type: true,
-                    entity: true,
-                    status: true,
-                    created_at: true
-                }
-            })
+        const updatedRequest = await prisma.request.update({
+            where: {
+                requestid: requestid
+            },
+            data: {
+                status: response
+            },
+            select: {
+                requestid: true,
+                type: true,
+                entity: true,
+                status: true,
+                created_at: true
+            }
+        })
 
-            await prisma.child_document.update({
-                data: {
-                    status: response
-                }
-            });
-
-            return { updatedRequest };
-        });
-
-        res.status(200).json({ 'success': true, data: result });
+        res.status(200).json({ 'success': true, data: updatedRequest });
 
     } catch (error) {
         console.error('Database query failed:', error);
@@ -576,6 +707,127 @@ const handleChildDocumentRequest = async (req, res) => {
             message: 'An error occurred'
         });
     }
+}
+
+const deleteChildDocumentRequest = async (req, res) => {
+    const { documentId } = req.body;
+    console.log('docId', documentId)
+    try {
+        const document = await prisma.child_document.findUnique({
+            where: {
+                documentid: documentId
+            },
+            include: {
+                child: {
+                    include: {
+                        orphanage: {
+                            select: {
+                                headid: true
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        if (!document) return res.status(404).json({
+            success: false,
+            message: 'Resource not found'
+        });
+
+        if ((!req.orphanageid) || (document.child.orphanageid !== req.orphanageid)) return res.status(401).json({
+            success: false,
+            message: 'Unauthorized'
+        });
+
+        await prisma.request.create({
+            data: {
+                type: 'delete',
+                entity: 'document',
+                entity_key: documentId,
+                receiver_id: document.child.orphanage.headid,
+                sender_id: req.userId,
+                target_key: documentId
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+            message: 'Request created successfully.'
+        })
+
+    } catch (error) {
+        console.error('Database query failed:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while creating request.'
+        });
+    }
+}
+
+const handleDeleteDocumentRequest = async (req, res) => {
+    const { requestid, response } = req.body;
+    //check if requestid and response are present
+    if (!requestid || !response) return res.status(400).json({ 'success': false, message: 'Bad Request' });
+
+    try {
+        //fetch request from database
+        const request = await prisma.request.findUnique({
+            where: {
+                requestid: requestid
+            }
+        })
+        console.log(request)
+
+        //check if request exists
+        if (!request) return res.status(404).json({ 'success': false, message: 'Resource not found' });
+        //check if request is of type delete and entity is document
+        if (request.type !== 'delete' || request.entity !== 'document' || request.status === 'approved' || request.status === 'rejected') return res.sendStatus(400);
+        //check if user is authorized to handle request
+        if (request.receiver_id !== req.userId) return res.status(401).json({ 'success': false, message: 'Unauthorized' });
+        //if request is accepted, delete document
+        if (response === 'approved') {
+
+            const documentId = request.entity_key;
+            console.log(request)
+
+            await prisma.child_document.delete({
+                where: {
+                    documentid: documentId
+                }
+            })
+
+            deleteFileInS3(`child/document/${documentId}.pdf`);
+
+        }
+
+        const updatedRequest = await prisma.request.update({
+            where: {
+                requestid: requestid
+            },
+            data: {
+                status: response
+            },
+            select: {
+                requestid: true,
+                type: true,
+                entity: true,
+                status: true,
+                created_at: true
+            }
+        })
+
+        res.status(200).json({ success: true, data: updatedRequest });
+
+    } catch (error) {
+        console.error('Database query failed:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred'
+        });
+    }
+
+
 }
 
 module.exports = {
@@ -589,5 +841,9 @@ module.exports = {
     getSentRequests,
     getReceivedRequests,
     createChildDocumentRequest,
-    handleChildDocumentRequest
+    handleChildDocumentRequest,
+    deleteChildDocumentRequest,
+    handleDeleteDocumentRequest,
+    getRequestCountByChild,
+    getRequestCountByDocument
 };

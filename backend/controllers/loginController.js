@@ -11,7 +11,7 @@ const handleLogin = async (req, res) => {
     if (!email || !password) return res.status(400).json({ 'message': 'Email and password are required.' });
 
     try {
-        // Query user from database
+        
         const user = await prisma.users.findUnique({
             where: {
                 email: email,
@@ -19,14 +19,14 @@ const handleLogin = async (req, res) => {
         });
 
         if (!user) {
-            return res.sendStatus(401); // Unauthorized if user not found
+            return res.sendStatus(401); 
         }
 
-        // Compare passwords
+        
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
-            const roles = user.roles ? Object.values(user.roles) : []; // Ensure roles exist and are an array
+            const roles = user.roles ? Object.values(user.roles) : []; 
 
             // Create access token
             let accessToken;
@@ -77,14 +77,14 @@ const handleLogin = async (req, res) => {
                 { expiresIn: '15min' }
             );
 
-            // Create refresh token
+            
             const refreshToken = jwt.sign(
                 { "email": user.email },
                 process.env.REFRESH_TOKEN_SECRET,
                 { expiresIn: '1d' }
             );
 
-            // Update refresh token in database
+            
             await prisma.users.update({
                 where: {
                     userid: user.userid,
@@ -94,23 +94,23 @@ const handleLogin = async (req, res) => {
                 },
             });
 
-            // Set refresh token in cookie
+            
             res.cookie('jwt', refreshToken, {
                 httpOnly: true,
                 sameSite: 'None',
-                secure: true, // Set to true in production for HTTPS only
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
+                secure: true, 
+                maxAge: 24 * 60 * 60 * 1000 
             });
 
-            // Respond with access token and roles
+            
             res.json({ accessToken });
         } else {
-            res.sendStatus(401); // Unauthorized if password doesn't match
+            res.sendStatus(401); 
 
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ 'message': 'Internal Server Error' }); // Internal server error on catch
+        console.log(error);
+        res.status(500).json({ 'message': 'Internal Server Error' }); 
     }
 };
 

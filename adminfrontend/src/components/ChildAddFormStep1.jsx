@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import useAxiosPrivate from '../hooks/useAxiosPrivate'
 import toast from 'react-hot-toast';
 import { ConfirmationModal } from './ConfirmationModal';
+import PrimaryButton from './elements/PrimaryButton';
 
 const NAME_REGEX = /^[a-zA-Z. ]{0,99}[a-zA-Z]$/;
 const GENDER_REGEX = /^(Male|Female)$/;
@@ -30,6 +31,7 @@ export const ChildAddFormStep1 = ({ setTab, tabs, setReqId }) => {
     const [validReligion, setValidReligion] = useState(false);
 
     const [confirmModalVisibility, setConfirmModalVisibility] = useState(false);
+    const [loading, setLoading] = useState(false)
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -64,10 +66,11 @@ export const ChildAddFormStep1 = ({ setTab, tabs, setReqId }) => {
     }
 
     const addChild = async () => {
+
         const data = {
             orphanageid: id,
             name,
-            date_of_birth: dateOfBirth,
+            date_of_birth: new Date(dateOfBirth),
             gender,
             religion,
             nationality,
@@ -76,18 +79,23 @@ export const ChildAddFormStep1 = ({ setTab, tabs, setReqId }) => {
         }
 
         try {
+
             const response = await axiosPrivate.post('/request/addChild', data)
+            console.log(response.data)
             await setReqId(response.data.data.requestid)
             toast.success(response.data.message)
             return true
         } catch (error) {
-            toast.error(error.response.data)
+            toast.error(error.message)
         }
+
     }
 
     const handleConfirmation = async () => {
-        const response = await addChild();
+        setLoading(true)
         setConfirmModalVisibility(false);
+        const response = await addChild();
+        setLoading(false)
         if (response) {
             clearForm();
             setTab(tabs[1]);
@@ -101,8 +109,8 @@ export const ChildAddFormStep1 = ({ setTab, tabs, setReqId }) => {
 
     return (
 
-        <div className=' grid grid-rows-12'>
-            <div className=" row-span-10 overflow-y-auto h-[60vh] mt-5">
+        <div className=' grid w-full h-[45vh] overflow-y-auto'>
+            <div className=" overflow-y-auto mt-5">
                 <form>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
                         <div className="col-span-1 sm:col-span-2 lg:col-span-2">
@@ -143,13 +151,14 @@ export const ChildAddFormStep1 = ({ setTab, tabs, setReqId }) => {
                 </form>
 
             </div>
-            <div className="row-span-2 flex justify-end ">
-                <button
+            <div className=" flex justify-end h-fit">
+                <PrimaryButton
                     onClick={handleSubmit}
                     disabled={!(validName && validDateOfBirth && validGender && validNationality && validReligion)}
-                    className="h-fit my-auto items-end bg-transparent hover:bg-orange-500 text-orange-500 font-semibold hover:text-white py-2 px-4 border border-orange-500 hover:border-transparent rounded disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed">
-                    Submit & Next
-                </button>
+                    text={'Submit & Next'}
+                    className={'my-5'}
+                    loading={loading} />
+
             </div>
             {confirmModalVisibility && <ConfirmationModal head="Add Child Request" body="Are you sure you want to create add child request?" handleConfirmation={handleConfirmation} setVisibility={setConfirmModalVisibility} />}
         </div>

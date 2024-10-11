@@ -6,8 +6,10 @@ import ChildTable from "./ChildTable";
 import { ChildForm } from "./ChildForm";
 
 import useAxiosPrivate from '../hooks/useAxiosPrivate'
+import PrimaryButton from "./elements/PrimaryButton";
 
-const Children = () => {
+const Children = ({ role }) => {
+
 
   const { id } = useParams();
   const axiosPrivate = useAxiosPrivate()
@@ -52,8 +54,11 @@ const Children = () => {
     }
   };
 
+  const navigate = useNavigate();
 
-  console.log(children)
+  const handleViewChild = (child) => {
+    navigate(`/orphanage/${id}/child/${child.childid}`);
+  }
 
 
   useEffect(() => {
@@ -88,10 +93,10 @@ const Children = () => {
 
   return (
     <div >
-      <button onClick={handleAddChild} class="mx-10 items-end bg-transparent hover:bg-orange-500 text-orange-500 font-semibold hover:text-white py-2 px-4 border border-orange-500 hover:border-transparent rounded">
-        Add Child
-      </button>
-      <div className="grid grid-cols-1 gap-3 mx-10 my-6  lg:grid-cols-3">
+
+
+      <div className="grid grid-cols-1 gap-8 mx-10 my-6  lg:grid-cols-4">
+        <PrimaryButton onClick={handleAddChild} text='Add Child' disabled={role != 'Staff'} />
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <AgeSlider ageRange={ageRange} setAgeRange={setAgeRange} />
         <div>
@@ -101,11 +106,39 @@ const Children = () => {
             <option>Female</option>
           </select>
         </div>
-
       </div>
 
-      <div className="mx-10">
-        <ChildTable children={filteredChildren} />
+      <h2 className="text-center text-2xl font-semibold">Children</h2>
+
+      <div className=" m-10 mt-5 h-[65vh] overflow-y-auto  border">
+
+        <div className="overflow-x-auto">
+          <table className="table">
+            {/* head */}
+            <thead className="bg-slate-300">
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th className="text-center">View</th>
+              </tr>
+            </thead>
+            <tbody >
+              {/* row 1 */}
+              {filteredChildren.map((child, index) => (
+                <tr key={index}>
+                  <th>{index + 1}</th>
+                  <td>{child.name}</td>
+                  <td>{child.age}</td>
+                  <td>{child.gender}</td>
+                  <td className="flex flex-row justify-center"><PrimaryButton text='view' onClick={() => handleViewChild(child)} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
       {formVisibility ? <ChildForm setFormVisibility={setFormVisibility} children={children} setChildren={setChildren} /> : null}
     </div>

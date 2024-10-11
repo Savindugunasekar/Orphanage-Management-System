@@ -2,8 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocation, faLocationDot, faPersonRifle, faPhone, faUser } from '@fortawesome/free-solid-svg-icons';
+import { FaChildren } from "react-icons/fa6";
+import { IoPerson } from "react-icons/io5";
+import { SiGoogleforms } from "react-icons/si";
+import { IoMdCall } from "react-icons/io";
+import { FaLocationDot } from "react-icons/fa6";
+import { FaRegCircle } from "react-icons/fa";
+import { MdEmail } from "react-icons/md";
+
+import DashboardCard from './elements/DashboardCard';
+import orphanageCover from '../assets/images/orphanage.jpg'
 
 const Overview = () => {
   const { id } = useParams();
@@ -70,161 +80,148 @@ const Overview = () => {
   }, [id, axiosPrivate]);
 
   return (
-    <div className='h-screen '> 
-  <div className='flex'>
+    <div className='mx-5'>
+      <div className='grid'>
 
-  <div className='w-[60%] h-full px-10 '>
-    <div className='text-4xl font-bold text-primary pt-5 pb-5 '>{orphanage.orphanagename}</div>
+        <div className="card bg-base-100 w-full shadow-xl rounded-lg mb-10 pb-10 h-fit">
+          <h2 className="card-title text-4xl text-center mt-5 mb-1 mx-auto">{orphanage.orphanagename}</h2>
+          <div className=' items-center text-base mx-auto mb-5'>
+            <span className='px-2 '><div className="badge bg-orange-300  border-transparent">{orphanage.orphanageid}</div></span>
+          </div>
+          <figure>
+            <img
+              className='w-full md:w-1/3 p-2'
+              src={orphanageCover}
+              alt="Shoes" />
+          </figure>
 
-    <div className='flex flex-col gap-2 '>
-    <div className=' items-center'>
-      <span className='text-lg text-primary font-bold '>Registration No:</span>
-
-            <span className='px-2 text-lg font-semibold'>{orphanage.orphanageid}</span>
-      </div>
-      <div className=' items-center'>
-      <span className='text-lg text-primary font-bold '>Contact:</span>
-
-            <span className='px-2 text-lg font-semibold'>{orphanage.telno}</span>
-      </div>
-      <div className=' items-center'>
-
-      <span className='text-lg text-primary font-bold '>Address:</span>
-      
-
-            <span className='px-2 text-lg font-semibold'>{orphanage.address}</span>
-      </div>
-      <div className=' items-center'>
-
-      <span className='text-lg text-primary font-bold '>Capacity:</span>
-      
-
-            <span className='px-2 text-lg font-semibold'>{orphanage.capacity}</span>
-      </div>
-    </div>
-
-    <h1 className='font-bold text-3xl mt-10 mr-10'>Orphanage Head</h1>
-
-    <div className='flex flex-col gap-2 mt-5'>
-    <div className=' items-center'>
-      <FontAwesomeIcon
-              icon={faUser}
-              className='text-primary'
-              
-            />
-
-            <span className='px-2 text-lg font-semibold'>{head.username}</span>
-      </div>
-      <div className=' items-center'>
-        
-      <FontAwesomeIcon
-              icon={faPhone}
-              className='text-primary'
-              
-            />
-
-            <span className='px-2 text-lg font-semibold'>{head.telno}</span>
-      </div>
-      <div className=' items-center'>
-      <FontAwesomeIcon
-              icon={faLocationDot}
-              className='text-primary'
-              
-            />
-
-            <span className='px-2 text-lg font-semibold'>{head.email}</span>
-      </div>
-    </div>
-    <div className=' border-3 mt-10  border-gray-100 h-[200px] w-[200px] flex items-center justify-center rounded-full shadow-lg ml-[400px]'>
-  <div className='text-center'>
-    <div className='text-gray-600 font-semibold text-xl mb-1'>Staff</div>
-    <div className='text-primary text-7xl font-bold'>{staffList.length}</div>
-  </div>
-</div>
-  
-  </div>
-
-
-
-    <div className='w-1/2  pt-1 px-10 '>
-    <div className=' border-3  border-gray-100 h-[200px] w-[200px] flex items-center justify-center rounded-full shadow-lg'>
-  <div className='text-center'>
-    <div className='text-gray-600 font-semibold text-xl mb-1'>Children</div>
-    <div className='text-primary text-7xl font-bold'>{childrenList.length}</div>
-  </div>
-</div>
-
-<div className=' border-3  ml-40 border-gray-100 h-[200px] w-[200px] flex items-center justify-center rounded-full shadow-lg'>
-  <div className='text-center'>
-    <div className='text-gray-600 font-semibold text-xl mb-1'>Cases</div>
-    <div className='text-primary text-7xl font-bold'>{childrenList.length}</div>
-  </div>
-</div>
-<div className=' border-3  border-gray-100 h-[200px] w-[200px] flex items-center justify-center rounded-full shadow-lg'>
-  <div className='text-center'>
-    <div className='text-gray-600 font-semibold text-xl mb-1'>Social Wokers</div>
-    <div className='text-primary text-7xl font-bold'>{socialWorkerList.length}</div>
-  </div>
-</div>
-    </div>
-   
-  </div>
-
-  <div className='flex bg-gray-50 px-10'>
-
-     {/* Social Workers List */}
-     <div className=" p-6  w-1/2">
-          <h2 className="text-2xl font-semibold mb-4">Social Workers</h2>
-          {socialWorkerList.length > 0 ? (
-            socialWorkerList.map((sw) => (
-              <div key={sw.staffid} className="mb-4 flex items-center p-4 bg-white rounded-lg border border-gray-200">
-              <div className="mr-4">
-                <img
-                  src={'https://www.dgvaishnavcollege.edu.in/dgvaishnav-c/uploads/2021/01/dummy-profile-pic.jpg'}
-                  alt={sw.username}
-                  className="h-16 w-16 rounded-full object-cover border-2 border-primary"
-                />
+          <div className="card-body">
+            <div className='grid sm:grid-cols-2 '>
+              <div className='flex flex-col w-fit mx-auto'>
+                <h2 className="card-title text-2xl text-center mt-5 mb-1 ">Orphanage Details</h2>
+                <div className='flex flex-row items-center'>
+                  <IoMdCall />
+                  <span className='ml-2'>Contact : </span>
+                  <span className='px-2 badge bg-red-300'>{orphanage.telno}</span>
+                </div>
+                <div className='flex flex-row items-center'>
+                  <FaLocationDot />
+                  <span className='ml-2' >Address : </span>
+                  <span className='px-2 badge bg-red-300'>{orphanage.address}</span>
+                </div>
+                <div className='flex flex-row  items-center'>
+                  <FaRegCircle />
+                  <span className='ml-2' >Capacity : </span>
+                  <span className='px-2  badge bg-red-300'>{orphanage.capacity}</span>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-semibold text-gray-800">{sw.username}</p>
-                <p className="text-sm text-gray-600">{sw.telno}</p>
-                <p className="text-sm text-gray-600">{sw.email}</p>
+
+              <div className='flex flex-col w-fit mx-auto'>
+                <h2 className="card-title text-2xl text-center mt-5 mb-1">Head Details</h2>
+                <div className=' items-center'>
+                  <FontAwesomeIcon
+                    icon={faUser} />
+                  <span className='px-2'>Orphanage Head : <div className='badge bg-green-300'>{head.username}</div></span>
+                </div>
+
+                <div className=' items-center'>
+                  <FontAwesomeIcon
+                    icon={faPhone} />
+                  <span className='px-2 '>Tel. No. :  <div className='badge bg-green-300'>{head.telno}</div></span>
+                </div>
+                <div className='flex flex-row items-center'>
+                  <MdEmail />
+                  <span className='px-2 '>Email :  <div className='badge bg-green-300'>{head.email}</div></span>
+                </div>
               </div>
             </div>
-            ))
-          ) : (
-            <p>No social workers found.</p>
-          )}
+          </div>
+        </div>
+      </div>
+
+
+
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10'>
+
+        <DashboardCard title={childrenList.length} text={'Total Children'} icon={<FaChildren />} iconColor={'green'} />
+        <DashboardCard title='-' text={'Total Cases'} icon={<SiGoogleforms />} iconColor={'blue'} />
+        <DashboardCard title={staffList.length} text={'Staff Members'} icon={<IoPerson />} iconColor={'red'} />
+        <DashboardCard title={socialWorkerList.length} text={'Social Workers'} icon={<IoPerson />} iconColor={'yellow'} />
+
+      </div>
+      <div className='grid sm:grid-cols-2 gap-4'>
+
+        <div className="  mx-auto card bg-base-100 w-full shadow-xl rounded-lg overflow-x-auto mb-10 p-5">
+          <h1 className='text-2xl text-center my-5'>Staff Members</h1>
+          <table className="table table-zebra">
+            {/* head */}
+            <thead>
+              <tr>
+                <th></th>
+                <th>Username</th>
+                <th>Tel. No.</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Check if there are social workers in the list */}
+              {staffList.length > 0 ? (
+                staffList.map((sw, index) => (
+                  <tr key={index}>
+                    <th>{index + 1}</th>
+                    <td>{sw.username}</td>
+                    <td>{sw.telno}</td>
+                    <td>{sw.email}</td>
+                  </tr>
+                ))
+              ) : (
+                // Render a single row with a colspan to show the 'No social workers found' message
+                <tr>
+                  <td colSpan="4" className="text-center">No staff found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
         </div>
 
-        {/* Staff List */}
-        <div className=" w-1/2 p-6 ">
-          <h2 className="text-2xl font-semibold mb-4">Staff</h2>
-          {staffList.length > 0 ? (
-            staffList.map((s) => (
-              <div key={s.staffid} className="mb-4 flex items-center p-4 bg-white rounded-lg border border-gray-200">
-  <div className="mr-4">
-    <img
-      src={'https://www.dgvaishnavcollege.edu.in/dgvaishnav-c/uploads/2021/01/dummy-profile-pic.jpg'}
-      alt={s.username}
-      className="h-16 w-16 rounded-full object-cover border-2 border-primary"
-    />
-  </div>
-  <div>
-    <p className="text-lg font-semibold text-gray-800">{s.username}</p>
-    <p className="text-sm text-gray-600">{s.telno}</p>
-    <p className="text-sm text-gray-600">{s.email}</p>
-  </div>
-</div>
+        <div className=" mx-auto card bg-base-100 w-full shadow-xl rounded-lg overflow-x-auto mb-10 p-5">
+          <h1 className='text-2xl text-center my-5'>Social Workers</h1>
+          <table className="table table-zebra">
+            {/* head */}
+            <thead>
+              <tr>
+                <th></th>
+                <th>Username</th>
+                <th>Tel. No.</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* row 1 */}
 
-            ))
-          ) : (
-            <p>No staff found.</p>
-          )}
+              {socialWorkerList.length > 0 ? (
+                socialWorkerList.map((sw, index) => (
+                  <tr key={index}>
+                    <th>{index + 1}</th>
+                    <td>{sw.username}</td>
+                    <td>{sw.telno}</td>
+                    <td>{sw.email}</td>
+                  </tr>
+
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center">No social workers found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-  </div>
-</div>
+      </div>
+
+    </div>
 
   );
 };

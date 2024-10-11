@@ -11,8 +11,7 @@ import 'swiper/css/pagination';
 
 const Carousel = ({ images }) => {
   return (
-    <div className="w-full">
-     
+    <div className="flex items-center justify-center w-full h-full">
       <Swiper
         effect={'coverflow'}
         grabCursor={true}
@@ -25,7 +24,7 @@ const Carousel = ({ images }) => {
           depth: 100,
           modifier: 2,
         }}
-        pagination={{ el: '.swiper-pagination', clickable: true }}
+        // pagination={{ clickable: true }}
         modules={[EffectCoverflow, Pagination]}
         className="swiper_container"
       >
@@ -34,11 +33,7 @@ const Carousel = ({ images }) => {
             <img src={image.url} alt={`slide_image_${index}`} className="slide-image" />
           </SwiperSlide>
         ))}
-
-       
-         
-          <div className="swiper-pagination"></div>
-       
+        <div className="swiper-pagination"></div>
       </Swiper>
     </div>
   );
