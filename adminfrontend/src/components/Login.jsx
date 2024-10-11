@@ -7,7 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import toast from "react-hot-toast";
 import PrimaryButton from "./elements/PrimaryButton";
-import LoginCover from "../assets/images/login.svg";
+import LoginCover from "../assets/images/login.png";
 
 const ROLES = {
   User: 1010,
@@ -86,107 +86,98 @@ const Login = () => {
       setLoading(false);
       if (!err?.response) {
         toast.error("No Server Response");
-        //setFormError("No Server Response");
+        setFormError("No Server Response");
       } else if (err.response?.status === 400) {
         toast.error("Missing Email or Password");
-        //setFormError("Missing Username or Password");
+        setFormError("Missing Username or Password");
       } else if (err.response?.status === 401) {
         toast.error("Unauthorized");
-        //setFormError("Unauthorized");
+        setFormError("Unauthorized");
       } else {
         toast.error("Login Failed");
-        //setFormError("Login Failed");
+        setFormError("Login Failed");
       }
       errRef.current.focus();
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="hidden h-full lg:block lg:w-3/5">
-        <div
-          style={{
-            backgroundImage: "url('https://weareworldchallenge.com/wp-content/uploads/2024/01/Orphanages.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-
-
-          }}
-          className="w-full h-full background-cover bg-center ba"
-        >
-          <h1 className="px-10 pt-48 text-6xl font-bold text-primary ">Join Our Journey: Adopt or Donate to Make a Difference</h1>
-        </div>
-      </div>
-      <div className="flex flex-col items-center justify-center w-full h-full lg:w-2/5">
-
-        <img className="relative object-cover w-full h-full lg:hidden" src="https://weareworldchallenge.com/wp-content/uploads/2024/01/Orphanages.jpg" alt="" />
-
-        <div className=" absolute w-full lg:w-2/5 sm:px-36 lg:px-10">
-          <p
-            ref={errRef}
-            className={
-              formError ? "font-semibold text-md text-red-500 mb-5" : "hidden"
-            }
-          >
-            {formError}
-          </p>
-
-          <h1 className="mb-10 text-4xl font-bold text-center text-primary ">
-            Log In
-          </h1>
-
-          <form className="flex flex-col gap-5 p-5 backdrop-blur-lg rounded-xl">
-            <div className="flex flex-col w-full">
-              <label className="mb-2 text-lg font-semibold text-primary" htmlFor="email">
-                Email:
-              </label>
-              <input
-                className="w-full h-12 px-4 py-3 text-white bg-gray-200 border rounded-md lg:text-gray-700 bg-opacity-20 lg:opacity-100 lg:bg-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                type="email"
-                ref={emailRef}
-                autoComplete="off"
-                onChange={(e) => setEmail(e.target.value)}
-                id="email"
-                value={email}
-                required
-              />
+    <section className="flex flex-row  align-middle lg:h-screen sm:p-10 bg-orange-50 overflow-y-auto">
+      <div className="rounded-lg drop-shadow-lg  container px-6 py-6 m-auto h-full bg-white">
+        <div className="g-6 flex h-full flex-wrap items-center justify-center lg:justify-between">
+          {/* <!-- Left column container with background--> */}
+          <div className="relative mb-12 md:mb-0 md:w-8/12 lg:w-6/12 lg:h-full">
+            <img
+              src="https://weareworldchallenge.com/wp-content/uploads/2024/01/Orphanages.jpg"
+              className="w-full filter-orange-500 rounded-lg shadow-lg h-full object-cover"
+              alt="Phone image"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <h2 className="text-white text-4xl sm:text-6xl border font-bold drop-shadow-xl p-2">OrphanCare</h2>
             </div>
-
-            <div className="flex flex-col w-full">
-              <label className="mb-2 text-lg font-semibold text-primary" htmlFor="password">
-                Password:
-              </label>
-              <input
-                className="w-full h-12 px-4 py-3 text-white bg-gray-200 border rounded-md lg:text-gray-700 bg-opacity-20 lg:opacity-100 lg:bg-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                type="password"
-                onChange={(e) => setPassword(e.target.value)}
-                id="password"
-                value={password}
-                required
-              />
-            </div>
-
-            <div className="items-center justify-between mt-6 ">
-              <PrimaryButton
-                text={'Log in'}
-                onClick={handleSubmit}
-                disabled={email === "" || password === ""}
-                loading={loading}
-                className={'w-full mb-5'} />
+          </div>
 
 
-              <div className="mt-5 text-white lg:text-gray-700">
-                Don't have an account?{" "}
-                <span className="underline cursor-pointer text-primary">
-                  <Link to={"/register"}>Sign Up</Link>
-                </span>
+          {/* <!-- Right column container with form --> */}
+          <div className="w-full md:w-8/12 lg:ml-6 lg:w-5/12 h-full overflow-y-auto sm:p-5 lg:pt-10">
+            <h1 className="mb-10 text-4xl font-bold text-center text-orange-500 mx-auto w-fit">Login</h1>
+
+            <form className="flex flex-col gap-5 p-5 backdrop-blur-lg rounded-xl">
+              <div className="flex flex-col w-full">
+                <h1 className="mb-5 text-xl">Please login to your account</h1>
+                <label className="mb-2 text-lg font-semibold text-primary" htmlFor="email">
+                  Email:
+                </label>
+                <input
+                  className="w-full h-12 px-4 py-3 border rounded-md  bg-opacity-20 lg:opacity-100  focus:border-primary focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  type="email"
+                  ref={emailRef}
+                  autoComplete="off"
+                  onChange={(e) => setEmail(e.target.value)}
+                  id="email"
+                  value={email}
+                  required
+                />
               </div>
-            </div>
-          </form>
-        </div>
 
+              <div className="flex flex-col w-full">
+                <label className="mb-2 text-lg font-semibold text-primary" htmlFor="password">
+                  Password:
+                </label>
+                <input
+                  className="w-full h-12 px-4 py-3 border rounded-md  bg-opacity-20 lg:opacity-100  focus:border-primary focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  type="password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  id="password"
+                  value={password}
+                  required
+                />
+              </div>
+
+              <div className="items-center justify-between mt-6 ">
+                <PrimaryButton
+                  text={'Log in'}
+                  onClick={handleSubmit}
+                  disabled={email === "" || password === ""}
+                  loading={loading}
+                  className={'w-full mb-5  py-3'} />
+
+
+                <div className="mt-5 text-gray-700">
+                  Don't have an account?{" "}
+                  <span className="underline cursor-pointer text-primary">
+                    <Link to={"/register"}>Sign Up</Link>
+                  </span>
+                </div>
+              </div>
+              <p ref={errRef} className={formError ? "font-semibold text-md text-red-500 mb-5" : "hidden"}>
+                {formError}
+              </p>
+            </form>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
 
   );

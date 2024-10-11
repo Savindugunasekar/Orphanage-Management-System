@@ -248,11 +248,15 @@ const Child = () => {
         <button onClick={() => navigate(`/orphanage/${id}?view=child`)} className="m-3 relative justify-start h-fit w-fit bg-transparent hover:bg-orange-600 text-orange-600 font-normal hover:text-white py-2 px-4 border border-orange-600 hover:border-transparent rounded">
           Back
         </button>
-        <div className='lg:w-1/3 flex justify-center'>
-          <img
-            onClick={() => { if (auth.roles.includes(ROLES.Staff)) setImagePreview(true) }}
-            className="w-64 h-64 my-auto p-10 rounded-full md:rounded-full max-w-xs transition duration-300 ease-in-out hover:scale-110 drop-shadow" src={imageURL ? imageURL : AvatarPlaceHolder} alt="ERROR" />
+
+        <div
+          className="avatar lg:w-1/3 flex justify-center"
+          onClick={() => { if (auth.roles.includes(ROLES.Staff)) setImagePreview(true) }}>
+          <div className="w-48 h-fit my-auto rounded-full hover:w-52">
+            <img src={imageURL ? imageURL : AvatarPlaceHolder} />
+          </div>
         </div>
+
         <div className="p-6 my-auto text-center lg:text-left lg:w-2/3">
           <h5 className="block mb-2 font-sans text-4xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
             {child.name}
