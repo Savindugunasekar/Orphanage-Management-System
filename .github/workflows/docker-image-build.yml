@@ -36,31 +36,31 @@ jobs:
           docker buildx build --platform linux/amd64 -t savindugunasekara/orphanageback:latest -f ./backend/Dockerfile ./backend --push
 
   deploy:
-    # Ensures that the deploy job runs only after the build job is successful
-    needs: build
-    runs-on: self-hosted
+      needs: build
+      runs-on: self-hosted
 
-    steps:
-      # Step 1: Ensure old containers are stopped and removed before deploying new ones
+      steps:
+      # Step 1: Clean up existing Frontend container
       - name: Clean up existing Frontend container
         run: |
           docker stop orphanagefront || true
           docker rm orphanagefront || true
-          sleep 5  # Add a delay to ensure the container is fully removed
+          sleep 5
 
+      # Step 2: Clean up existing Backend container
       - name: Clean up existing Backend container
         run: |
           docker stop orphanageback || true
           docker rm orphanageback || true
-          sleep 5  # Add a delay to ensure the container is fully removed
+          sleep 5
 
-      # Step 2: Pull and run Frontend container from DockerHub
+      # Step 3: Deploy Frontend container
       - name: Deploy Frontend container
         run: |
           docker pull savindugunasekara/orphanagefront:latest
           docker run --rm -d --name orphanagefront -p 3000:3000 savindugunasekara/orphanagefront:latest
 
-      # Step 3: Pull and run Backend container from DockerHub
+      # Step 4: Deploy Backend container
       - name: Deploy Backend container
         run: |
           echo "${{ secrets.ENV }}" > .env
@@ -69,3 +69,9 @@ jobs:
             --env-file .env \
             -p 4000:4000 \
             --rm --name orphanageback savindugunasekara/orphanageback:latest
+
+      # Step 5: Clean up dangling images
+      - name: Clean up dangling images
+        run: |
+          docker image prune -f
+
