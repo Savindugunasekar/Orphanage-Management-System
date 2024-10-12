@@ -41,8 +41,6 @@ jobs:
     runs-on: self-hosted
 
     steps:
-  
-
       # Step 1: Pull and run Frontend container from DockerHub
       - name: Deploy Frontend container
         run: |
@@ -53,6 +51,10 @@ jobs:
       # Step 2: Pull and run Backend container from DockerHub
       - name: Deploy Backend container
         run: |
+          echo "${{ secrets.ENV }}" > .env
           docker pull savindugunasekara/orphanageback:latest
           docker stop orphanageback || true && docker rm orphanageback || true
-          docker run --rm -d --name orphanageback -p 4000:4000 savindugunasekara/orphanageback:latest
+          docker run -d \
+            --env-file .env \
+            -p 4000:4000 \
+            --rm --name orphanageback savindugunasekara/orphanageback:latest
