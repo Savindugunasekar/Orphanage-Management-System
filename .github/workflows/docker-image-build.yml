@@ -41,19 +41,30 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Step 1: Pull and run Frontend container from DockerHub
+      # Step 1: Ensure old containers are stopped and removed before deploying new ones
+      - name: Clean up existing Frontend container
+        run: |
+          docker stop orphanagefront || true
+          docker rm orphanagefront || true
+          sleep 5  # Add a delay to ensure the container is fully removed
+
+      - name: Clean up existing Backend container
+        run: |
+          docker stop orphanageback || true
+          docker rm orphanageback || true
+          sleep 5  # Add a delay to ensure the container is fully removed
+
+      # Step 2: Pull and run Frontend container from DockerHub
       - name: Deploy Frontend container
         run: |
           docker pull savindugunasekara/orphanagefront:latest
-          docker stop orphanagefront || true && docker rm orphanagefront || true
           docker run --rm -d --name orphanagefront -p 3000:3000 savindugunasekara/orphanagefront:latest
 
-      # Step 2: Pull and run Backend container from DockerHub
+      # Step 3: Pull and run Backend container from DockerHub
       - name: Deploy Backend container
         run: |
           echo "${{ secrets.ENV }}" > .env
           docker pull savindugunasekara/orphanageback:latest
-          docker stop orphanageback || true && docker rm orphanageback || true
           docker run -d \
             --env-file .env \
             -p 4000:4000 \
