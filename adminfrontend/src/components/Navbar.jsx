@@ -44,6 +44,18 @@ const NavBar = () => {
         }
     }, [axiosPrivate, auth]);
 
+
+    const clearNotifications = async () => {
+        try {
+            const response = await axiosPrivate.post('/notifications/clear', { userId: auth.userId });
+            if (response.data.success) {
+                setNotifications([]);
+            }
+        } catch (error) {
+            console.error('Failed to clear notifications:', error);
+        }
+    }
+
     const routes = {
         admin: {
             home: '/admin',
@@ -93,10 +105,6 @@ const NavBar = () => {
 
     const signOut = async () => {
         await logout();
-    };
-
-    const clearNotifications = () => {
-        setNotifications([]);
     };
 
     return (
