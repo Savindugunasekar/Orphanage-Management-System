@@ -11,7 +11,7 @@ const handleLogin = async (req, res) => {
     if (!email || !password) return res.status(400).json({ 'message': 'Email and password are required.' });
 
     try {
-        
+
         const user = await prisma.users.findUnique({
             where: {
                 email: email,
@@ -19,14 +19,14 @@ const handleLogin = async (req, res) => {
         });
 
         if (!user) {
-            return res.sendStatus(401); 
+            return res.sendStatus(401);
         }
 
-        
+
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
-            const roles = user.roles ? Object.values(user.roles) : []; 
+            const roles = user.roles ? Object.values(user.roles) : [];
 
             // Create access token
             let accessToken;
@@ -77,14 +77,14 @@ const handleLogin = async (req, res) => {
                 { expiresIn: '15min' }
             );
 
-            
+
             const refreshToken = jwt.sign(
                 { "email": user.email },
                 process.env.REFRESH_TOKEN_SECRET,
                 { expiresIn: '1d' }
             );
 
-            
+
             await prisma.users.update({
                 where: {
                     userid: user.userid,
@@ -94,23 +94,23 @@ const handleLogin = async (req, res) => {
                 },
             });
 
-            
+
             res.cookie('jwt', refreshToken, {
                 httpOnly: true,
                 sameSite: 'None',
-                secure: true, 
-                maxAge: 24 * 60 * 60 * 1000 
+                secure: false,
+                maxAge: 24 * 60 * 60 * 1000
             });
 
-            
+
             res.json({ accessToken });
         } else {
-            res.sendStatus(401); 
+            res.sendStatus(401);
 
         }
     } catch (error) {
         console.log(error);
-        res.status(500).json({ 'message': 'Internal Server Error' }); 
+        res.status(500).json({ 'message': 'Internal Server Error' });
     }
 };
 
