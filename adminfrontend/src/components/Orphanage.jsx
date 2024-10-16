@@ -9,6 +9,15 @@ import { Requests } from "./Requests";
 import useAuth from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import { FaChildren } from 'react-icons/fa6'
+import { FaHome } from "react-icons/fa";
+import { IoPerson } from 'react-icons/io5';
+import { SiGoogleforms } from 'react-icons/si';
+import { FaFileWaveform } from "react-icons/fa6";
+import { MdDashboard } from "react-icons/md";
+import { FaHouseUser } from "react-icons/fa";
+import { MdAssignment } from "react-icons/md";
+
 const ROLES = {
   User: 1010,
   Head: 1910,
@@ -32,17 +41,17 @@ const Orphanage = () => {
 
   const orphanageTabs = useMemo(() => {
     const baseTabs = [
-      { label: 'Overview' },
-      { label: 'Child Management' },
-      { label: 'Case Management' },
-      { label: 'Request Management' }
+      { label: 'Overview', icon: <MdDashboard /> },
+      { label: 'Child Management', icon: <FaChildren /> },
+      { label: 'Case Management', icon: <FaHome /> },
+      { label: 'Request Management', icon: <IoPerson /> },
     ];
 
     if (auth.roles.includes(ROLES.Admin)) {
       baseTabs.splice(1, 3);
     }
     else if (auth.roles.includes(ROLES.Head)) {
-      baseTabs.splice(2, 0, { label: 'Adoption Management' }); // Add Applications tab
+      baseTabs.splice(2, 0, { label: 'Adoption Management', icon: <SiGoogleforms /> }); // Add Applications tab
       setType('received');
       setRole('Head')
     }
@@ -52,7 +61,7 @@ const Orphanage = () => {
       setRole('Staff')
     }
     else {
-      baseTabs.splice(0, 4, { label: 'Case Management' }); // Add Cases tab
+      baseTabs.splice(0, 4, { label: 'Case Management', icon: <FaHome /> }); // Add Cases tab
       setSelectedTab('Case Management');
     }
     return baseTabs;
@@ -95,7 +104,7 @@ const Orphanage = () => {
             <li key={index} onClick={() => setSelectedTab(tab.label)} className={`${selectedTab == tab.label && 'bg-gray-200'}`} >
               <div>
                 <span className="inline-flex items-center justify-center text-3xl">
-                  { }
+                  {tab.icon}
                 </span>
                 <span className=" tracking-wide truncate text-[1rem]">{tab.label}</span>
               </div>
