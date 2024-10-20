@@ -44,6 +44,7 @@ const CasesList = () => {
     <>
       {isLoading ? (<Loading />) :
         <div className='mx-2'>
+          <h1 className='text-4xl font-bold text-center text-gray-800 my-2'>Adoption Cases</h1>
           {filteredCases.map((caseItem, index) => (
             <div key={index} className="py-2">
               <div className="card bg-transparent border border-orange-900 rounded-md text-black w-full">

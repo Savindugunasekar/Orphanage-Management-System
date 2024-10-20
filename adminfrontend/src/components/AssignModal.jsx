@@ -1,16 +1,18 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PrimaryButton from './elements/PrimaryButton'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const AssignModal = ({ showModal, closeModal, orphanageList, onSubmit, type }) => {
 
     const [email, setEmail] = useState('')
     const [selectedOrphanageId, setSelectedOrphanageId] = useState('')
-
+    const [validEmail, setValidEmail] = useState(false);
     const [loading, setLoading] = useState(false)
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setLoading(true)
-        onSubmit({ email, orphanageId: selectedOrphanageId })
+        await onSubmit({ email, orphanageId: selectedOrphanageId })
         setSelectedOrphanageId('')
         setEmail('')
         setLoading(false)
@@ -21,11 +23,19 @@ export const AssignModal = ({ showModal, closeModal, orphanageList, onSubmit, ty
         setSelectedOrphanageId(e.target.value)
     }
 
+    useEffect(() => {
+        if (EMAIL_REGEX.test(email)) {
+            setValidEmail(true)
+        } else {
+            setValidEmail(false)
+        }
+    }, [email])
+
     if (!showModal) return null
 
     return (
-        <div className='fixed inset-0 flex items-center justify-center backdrop-blur-md'>
-            <div className='w-1/3 p-5 bg-white rounded shadow-lg'>
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm py-20 ">
+            <div id="scrollview" className="bg-white rounded drop-shadow-lg w-fit h-fit mt-10 mx-10 border p-10">
                 <h2 className='mb-4 text-xl font-bold'>Assign {type}</h2>
                 <label className='block mb-2'>{type} Email:</label>
                 <input
@@ -59,7 +69,7 @@ export const AssignModal = ({ showModal, closeModal, orphanageList, onSubmit, ty
                         text={' Assign'}
                         loading={loading}
                         className={'mx-2'}
-                        disabled={!email || !selectedOrphanageId}
+                        disabled={!validEmail || !selectedOrphanageId}
                     />
                 </div>
             </div>

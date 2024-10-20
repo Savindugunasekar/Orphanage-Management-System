@@ -4,9 +4,31 @@ import { useParams } from "react-router-dom";
 import { RiCloseLargeFill } from "react-icons/ri";
 import PrimaryButton from "../elements/PrimaryButton";
 
-const UpdateOrphanage = ({ id, setUpdateForm }) => {
+const NAME_REGEX = /^[A-Za-z\s]+$/;
+const ADDRESS_REGEX = /^[A-Za-z0-9\s,./-]+$/;
+const CAPACITY_REGEX = /^(?:[1-9]\d{0,2}|101)$/;
+const TELNO_REGEX = /^\d{10}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const UpdateOrphanage = ({ id, setUpdateForm, getAllOrphanages }) => {
   const axiosPrivate = useAxiosPrivate();
   const [loading, setLoading] = useState(false)
+
+
+  const [validName, setValidName] = useState(false);
+  const [validAddress, setValidAddress] = useState(false);
+  const [validCapacity, setValidCapacity] = useState(false);
+  const [validTelno, setValidTelno] = useState(false);
+  const [validHead_email, setValidHead_email] = useState(false);
+
+  const warningText = {
+    name: "Only letters allowed",
+    address: "Use letters and numbers",
+    capacity: "Enter a number (1-100)",
+    telno: "Must be 10 digits",
+    head_email: "Invalid email",
+    district: "Select a district"
+  };
 
   const [orphanageDetails, setOrphanageDetails] = useState({
     orphanagename: "",
@@ -68,6 +90,7 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
       );
 
       if (response.status === 200) {
+        await getAllOrphanages();
         console.log("Orphanage Updated successfully");
 
         // Reset form fields
@@ -89,6 +112,28 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
       setUpdateForm(false)
     }
   };
+
+  useEffect(() => {
+    setValidName(new RegExp(NAME_REGEX).test(orphanageDetails.orphanagename));
+  }, [orphanageDetails.orphanagename]);
+
+  useEffect(() => {
+    setValidAddress(new RegExp(ADDRESS_REGEX).test(orphanageDetails.address));
+  }, [orphanageDetails.address]);
+
+  useEffect(() => {
+    setValidCapacity(new RegExp(CAPACITY_REGEX).test(orphanageDetails.capacity));
+  }, [orphanageDetails.capacity]);
+
+  useEffect(() => {
+    setValidTelno(new RegExp(TELNO_REGEX).test(orphanageDetails.telno));
+  }, [orphanageDetails.telno]);
+
+  useEffect(() => {
+    setValidHead_email(new RegExp(EMAIL_REGEX).test(orphanageDetails.head_email));
+  }, [orphanageDetails.head_email]);
+
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm py-20 ">
@@ -112,7 +157,7 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
                 className="mb-3 font-semibold text-md"
                 htmlFor="orphanagename"
               >
-                Orphanage Name:
+                Orphanage Name:{!validName && <span className='text-red-500 text-xs'>{warningText.orphanagename}</span>}
               </label>
               <input
                 className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -127,7 +172,7 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
 
             <div className="flex flex-col w-full">
               <label className="mb-3 font-semibold text-md" htmlFor="address">
-                Address:
+                Address:{!validAddress && <span className='text-red-500 text-xs'>{warningText.address}</span>}
               </label>
               <input
                 className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -144,7 +189,7 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
           <div className="flex flex-col gap-5 md:flex-row">
             <div className="flex flex-col w-full">
               <label className="mb-3 font-semibold text-md" htmlFor="capacity">
-                Capacity:
+                Capacity:{!validCapacity && <span className='text-red-500 text-xs'>{warningText.capacity}</span>}
               </label>
               <input
                 className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -160,7 +205,7 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
 
             <div className="flex flex-col w-full">
               <label className="mb-3 font-semibold text-md" htmlFor="telno">
-                Tel Number:
+                Tel Number: {!validTelno && <span className='text-red-500 text-xs'>{warningText.telno}</span>}
               </label>
               <input
                 className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -177,7 +222,7 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
           <div className="flex flex-col gap-5 md:flex-row">
             <div className="flex flex-col w-full">
               <label className="mb-3 font-semibold text-md" htmlFor="head_email">
-                Head Email:
+                Head Email: {!validHead_email && <span className='text-red-500 text-xs'>{warningText.head_email}</span>}
               </label>
               <input
                 className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -215,7 +260,12 @@ const UpdateOrphanage = ({ id, setUpdateForm }) => {
 
         </form>
         <div className="flex flex-row justify-end">
-          <PrimaryButton onClick={updatingOrphanage} text={'Update Orphanage'} className={'m-10'} loading={loading} />
+          <PrimaryButton
+            onClick={updatingOrphanage}
+            text={'Update Orphanage'}
+            className={'m-10'}
+            loading={loading}
+            disabled={!validName || !validAddress || !validCapacity || !validHead_email || !validTelno} />
         </div>
 
       </div>

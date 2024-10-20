@@ -191,6 +191,18 @@ const createAddChildRequest = async (req, res) => {
                     created_at: true
                 }
             })
+
+            await prisma.users.update({
+                where: {
+                    userid: receiverOrphanage.headid,
+                },
+                data: {
+                    notifications: {
+                        push: "You have a new request to add a child",
+                    },
+                },
+            });
+
             return newRequest;
         })
 
@@ -272,6 +284,17 @@ const handleAddChildRequest = async (req, res) => {
             }
         })
 
+        await prisma.users.update({
+            where: {
+                userid: request.sender_id,
+            },
+            data: {
+                notifications: {
+                    push: "Your request to add a child has been " + response,
+                },
+            },
+        });
+
         res.status(200).json({ 'success': true, data: updatedRequest });
 
     } catch (error) {
@@ -336,6 +359,17 @@ const createEditChildRequest = async (req, res) => {
                     created_at: true
                 }
             })
+
+            await prisma.users.update({
+                where: {
+                    userid: child.orphanage.headid,
+                },
+                data: {
+                    notifications: {
+                        push: "You have a new request to update a child",
+                    },
+                },
+            });
             return newRequest
 
         })
@@ -415,6 +449,17 @@ const handleEditChildRequest = async (req, res) => {
             }
         })
 
+        await prisma.users.update({
+            where: {
+                userid: request.sender_id,
+            },
+            data: {
+                notifications: {
+                    push: "Your request to update a child has been " + response,
+                },
+            },
+        });
+
         res.status(200).json({ success: true, data: updatedRequest });
 
     } catch (error) {
@@ -491,6 +536,17 @@ const createDeleteChildRequest = async (req, res) => {
                     created_at: true
                 }
             })
+
+            await prisma.users.update({
+                where: {
+                    userid: child.orphanage.headid,
+                },
+                data: {
+                    notifications: {
+                        push: "You have a new request to delete a child",
+                    },
+                },
+            });
         })
 
         res.status(200).json({
@@ -564,6 +620,17 @@ const handleDeleteChildRequest = async (req, res) => {
             }
         })
 
+        await prisma.users.update({
+            where: {
+                userid: request.sender_id,
+            },
+            data: {
+                notifications: {
+                    push: "Your request to delete a child has been " + response,
+                },
+            },
+        });
+
         res.status(200).json({ success: true, data: updatedRequest });
     } catch (error) {
         console.error('Database query failed:', error);
@@ -627,6 +694,16 @@ const createChildDocumentRequest = async (req, res) => {
             });
             //rename temp document in s3 bucket
             await renameFileInS3(`request/document/${tempId}.pdf`, `request/document/${newDocument.documentid}.pdf`);
+            await prisma.users.update({
+                where: {
+                    userid: child.orphanage.headid,
+                },
+                data: {
+                    notifications: {
+                        push: "You have a new request to add a document",
+                    },
+                },
+            });
 
         })
 
@@ -698,6 +775,17 @@ const handleChildDocumentRequest = async (req, res) => {
             }
         })
 
+        await prisma.users.update({
+            where: {
+                userid: request.sender_id,
+            },
+            data: {
+                notifications: {
+                    push: "Your request to add a document has been " + response,
+                },
+            },
+        });
+
         res.status(200).json({ 'success': true, data: updatedRequest });
 
     } catch (error) {
@@ -751,6 +839,17 @@ const deleteChildDocumentRequest = async (req, res) => {
             }
         })
 
+        await prisma.users.update({
+            where: {
+                userid: document.child.orphanage.headid,
+            },
+            data: {
+                notifications: {
+                    push: "You have a new request to delete a document",
+                },
+            },
+        });
+
         res.status(200).json({
             success: true,
             message: 'Request created successfully.'
@@ -798,6 +897,17 @@ const handleDeleteDocumentRequest = async (req, res) => {
             })
 
             deleteFileInS3(`child/document/${documentId}.pdf`);
+
+            await prisma.users.update({
+                where: {
+                    userid: request.sender_id,
+                },
+                data: {
+                    notifications: {
+                        push: "Your request to delete a document has been " + response,
+                    },
+                },
+            });
 
         }
 
