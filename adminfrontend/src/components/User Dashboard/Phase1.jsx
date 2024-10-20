@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import useAuth from "../../hooks/useAuth";
+import PrimaryButton from "../elements/PrimaryButton";
+import toast from "react-hot-toast";
 
 const ROLES = {
   User: 1010,
@@ -25,6 +27,7 @@ const Phase1 = ({ caseId, caseDetails }) => {
   });
   const [uploadStatus, setUploadStatus] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [phase1Loading, setPhase1Loading] = useState(false);
 
   useEffect(() => {
     const fetchDocumentUrls = async () => {
@@ -43,10 +46,13 @@ const Phase1 = ({ caseId, caseDetails }) => {
 
   const phase1Complete = async () => {
     try {
+      setPhase1Loading(true);
       const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}`);
 
       if (response.status === 200) {
+        setPhase1Loading(false);
         console.log("succcessfully completed");
+        toast.success("Phase 1 completed successfully");
       }
     } catch (error) {
       console.log(error);
@@ -221,13 +227,14 @@ const Phase1 = ({ caseId, caseDetails }) => {
                   </div>
                 </div>
               </div>
-              <button
+              <PrimaryButton
                 onClick={handleUpload}
-                className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark mt-6"
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading" : "Upload Documents"}
-              </button>
+                loading={isUploading}
+                text={'Upload Documents'}
+                disabled={!files.marriageCertificate ||
+                  !files.incomeCertificate ||
+                  !files.birthCertificate}
+                className={'my-5'} />
               {uploadStatus && (
                 <p className="mt-4 text-ld text-green-500">{uploadStatus}</p>
               )}
@@ -275,12 +282,12 @@ const Phase1 = ({ caseId, caseDetails }) => {
             </div>
 
             {caseDetails.phase1 === "Ongoing" && (
-              <button
+              <PrimaryButton
                 onClick={phase1Complete}
-                className="text-xl border-2 border-primary my-5 py-3 px-4 rounded-lg text-primary hover:bg-primary hover:text-white font-semibold transition-colors duration-300"
-              >
-                Approve
-              </button>
+                text="Approve"
+                className="mt-6"
+                loading={phase1Loading} />
+
             )}
           </div>
         )}

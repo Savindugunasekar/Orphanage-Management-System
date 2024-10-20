@@ -65,7 +65,7 @@ const Case = () => {
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Video Conference</h2>
         <div className="px-4 py-5 bg-gray-100 rounded-lg">
-          <Lobby caseId={caseId} />
+          <Lobby caseId={caseId} caseDetails={caseDetails} />
         </div>
       </div>
 

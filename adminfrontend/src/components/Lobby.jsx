@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import useAuth from '../hooks/useAuth';
+import PrimaryButton from './elements/PrimaryButton';
+import toast from 'react-hot-toast';
 
 const ROLES = {
   User: 1010,
@@ -10,17 +12,18 @@ const ROLES = {
   Admin: 7788,
 };
 
-const Lobby = ({caseId}) => {
-  const {auth} =useAuth();
+const Lobby = ({ caseId, caseDetails }) => {
+  const { auth } = useAuth();
   const navigate = useNavigate();
-  
+
   const linkRef = useRef();
   const [dateTime, setDateTime] = useState('');
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [report, setReport] = useState('');
   const [meetings, setMeetings] = useState([]);
-  
+  const [phase2Loading, setPhase2Loading] = useState(false);
+
 
   const axiosPrivate = useAxiosPrivate();
 
@@ -32,8 +35,6 @@ const Lobby = ({caseId}) => {
   }, [caseId]);
 
 
-
-
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const inviteCode = e.target.invite_link.value;
@@ -41,11 +42,15 @@ const Lobby = ({caseId}) => {
   };
 
   const completePhase2 = async () => {
-    await axiosPrivate.put(`/case/phase2?caseid=${caseId}`);
-    alert('Phase 2 completed successfully!');
-    
+    try {
+      phase2Loading(true);
+      await axiosPrivate.put(`/case/phase2?caseid=${caseId}`);
+      phase2Loading(false);
+      toast.success('Phase 2 completed successfully!');
+    } catch (error) {
+      toast.error('Failed to complete phase 2');
+    }
   }
-
 
   const getMeetings = async () => {
     try {
@@ -58,21 +63,14 @@ const Lobby = ({caseId}) => {
 
   const setMeeting = async () => {
     const meeting = { date: dateTime, report: null };
-
-
-
     try {
-
-
-
-
       const response = await axiosPrivate.post('/case/meetings', { caseId, meeting });
       console.log('Meeting set successfully', response.data);
-      alert('Meeting scheduled successfully!');
+      toast.success('Meeting scheduled successfully!')
       getMeetings(); // Refresh meetings after setting a new one
     } catch (error) {
       console.error('Error setting the meeting', error);
-      alert('Failed to schedule meeting.');
+      toast.error('Failed to schedule meeting.')
     }
   };
 
@@ -111,37 +109,61 @@ const Lobby = ({caseId}) => {
       <h1 className='text-primary font-bold text-3xl mb-6'>Video Conference</h1>
       <div className='flex gap-6'>
         <div className='w-3/4'>
-        {(auth.roles.includes(ROLES.Head) || auth.roles.includes(ROLES.SocialWorker)) && (
-           <div className='bg-white shadow-lg p-6 rounded-lg'>
-           <h2 className='text-xl font-bold mb-4'>Set up a Meeting</h2>
-           <div className='mb-4'>
-             <label htmlFor="datetime" className='block text-gray-700'>Date and Time</label>
-             <input
-               id='datetime'
-               type="datetime-local"
-               value={dateTime}
-               onChange={(e) => setDateTime(e.target.value)}
-               className='w-full p-2 border border-gray-300 rounded-md'
-             />
-           </div>
-           <button
-             onClick={setMeeting}
-             className='bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-dark transition'
-           >
-             Set up
-           </button>
-         </div>
-        )}
-         
+          {(auth.roles.includes(ROLES.Head) || auth.roles.includes(ROLES.SocialWorker)) && (
+            <div className='bg-white shadow-lg p-6 rounded-lg'>
+              <h2 className='text-xl font-bold mb-4'>Set up a Meeting</h2>
+              <div className='mb-4'>
+                <label htmlFor="datetime" className='block text-gray-700'>Date and Time</label>
+                <input
+                  id='datetime'
+                  type="datetime-local"
+                  value={dateTime}
+                  onChange={(e) => setDateTime(e.target.value)}
+                  className='w-full p-2 border border-gray-300 rounded-md'
+                />
+              </div>
+              <PrimaryButton
+                onClick={setMeeting}
+                text='Set up'
+                disabled={!dateTime} />
+            </div>
+          )}
+
 
           <div id='meetings' className='mt-6'>
 
-          {(auth.roles.includes(ROLES.Head) || auth.roles.includes(ROLES.SocialWorker)) && (
-            <div>
-                 {meetings.slice().reverse().map((meeting, index) => (
+            {(auth.roles.includes(ROLES.Head) || auth.roles.includes(ROLES.SocialWorker)) && (
+              <div>
+                {meetings.slice().reverse().map((meeting, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleMeetingClick(meeting)}
+                    className="bg-white p-6 border border-gray-300 rounded-md shadow-sm mb-4 cursor-pointer"
+                  >
+                    <h3 className="text-lg font-bold mb-2">Meeting {meetings.length - index}</h3>
+                    <p>Date: {new Date(meeting.date).toLocaleDateString()}</p>
+                    <p>Time: {new Date(meeting.date).toLocaleTimeString()}</p>
+                  </div>
+                ))}
+
+                <PrimaryButton
+                  onClick={completePhase2}
+                  text='Conclude second phase'
+                  disabled={caseDetails.phase2 === 'Completed' || caseDetails.phase1 !== 'Completed'}
+                  loading={phase2Loading} />
+              </div>
+            )}
+
+            {auth.roles == 1010 && (
+              <div >
+                {meetings
+                  .filter(meeting => new Date(meeting.date) > new Date())
+                  .slice()
+                  .reverse()
+                  .map((meeting, index) => (
                     <div
                       key={index}
-                      onClick={() => handleMeetingClick(meeting)}
+
                       className="bg-white p-6 border border-gray-300 rounded-md shadow-sm mb-4 cursor-pointer"
                     >
                       <h3 className="text-lg font-bold mb-2">Meeting {meetings.length - index}</h3>
@@ -149,57 +171,10 @@ const Lobby = ({caseId}) => {
                       <p>Time: {new Date(meeting.date).toLocaleTimeString()}</p>
                     </div>
                   ))}
-
-<button
-             onClick={completePhase2}
-             className='bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-dark transition'
-           >
-             Conclude second phase
-           </button>
-
-                  
-            </div>
-            
-
-            
-               
-          )
-          
-          }
-
-
-
-{auth.roles == 1010 && (
-  <div >
-
-{meetings
-  .filter(meeting => new Date(meeting.date) > new Date()) 
-  .slice()
-  .reverse()
-  .map((meeting, index) => (
-    <div
-      key={index}
-      
-      className="bg-white p-6 border border-gray-300 rounded-md shadow-sm mb-4 cursor-pointer"
-    >
-      <h3 className="text-lg font-bold mb-2">Meeting {meetings.length - index}</h3>
-      <p>Date: {new Date(meeting.date).toLocaleDateString()}</p>
-      <p>Time: {new Date(meeting.date).toLocaleTimeString()}</p>
-    </div>
-  ))}
-
-
-  </div>
-)}
-
-
-
-
-
-      
+              </div>
+            )}
           </div>
         </div>
-
         <div className="w-1/4">
           <div className='bg-white shadow-lg p-6 rounded-lg'>
             <form onSubmit={handleFormSubmit}>
@@ -209,18 +184,12 @@ const Lobby = ({caseId}) => {
                 placeholder="Enter invite link"
                 required
                 ref={linkRef}
-               
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              />
+                className="w-full p-2 border border-gray-300 rounded-md mb-4" />
+
               <input
                 type="submit"
                 value="Join Room"
-                className={`w-full  bg-primary  cursor-pointer  text-white py-2 px-4 rounded-md hover:bg-primary  transition`}
-                
-              />
-
-
-              
+                className={`w-full  bg-primary  cursor-pointer  text-white py-2 px-4 rounded-md hover:bg-primary  transition`} />
             </form>
           </div>
         </div>
