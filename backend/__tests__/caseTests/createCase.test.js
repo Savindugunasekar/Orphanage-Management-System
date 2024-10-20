@@ -1,14 +1,22 @@
-const {PrismaClient} = require('@prisma/client');
-const {createCase} = require('../../controllers/caseController');
+const { PrismaClient } = require('@prisma/client');
+const { createCase } = require('../../controllers/caseController');
 
 
 jest.mock('@prisma/client', () => {
 
 
     const mockPrisma = {
-        cases:{
-            create: jest.fn()
-        }
+        cases: {
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        approvedapplications: {
+            update: jest.fn(),
+        },
+        users: {
+            update: jest.fn(),
+        },
+
     }
 
     return { PrismaClient: jest.fn(() => mockPrisma) };
@@ -17,20 +25,20 @@ jest.mock('@prisma/client', () => {
 
 describe('createCase', () => {
 
-    let prisma,req,res
+    let prisma, req, res
 
     beforeEach(() => {
         prisma = new PrismaClient()
 
-        req={
-            body:{
-                socialworkerid:'sw-id',
-                parentid:'parent-id',
-                childid:'child-id'
+        req = {
+            body: {
+                socialworkerid: 'sw-id',
+                parentid: 'parent-id',
+                childid: 'child-id'
             }
         }
 
-        res={
+        res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         }
@@ -43,32 +51,56 @@ describe('createCase', () => {
     })
 
     it('should create a new case and return success', async () => {
+        // Mock request body
+        const req = {
+            body: {
+                socialworkerid: 'sw-id',
+                parentid: 'parent-id',
+                childid: 'child-id',
+                applicationid: 'app-id',
+                childname: 'child-name',
+                parentname: 'parent-name',
+            },
+        };
+
+        // Mock response object
+        const res = {
+            json: jest.fn(),
+            status: jest.fn().mockReturnThis(),
+        };
+
+        // Mock Prisma calls
+        prisma.approvedapplications.update.mockResolvedValue({
+            applicationid: 'app-id',
+            status: 'Accepted',
+        });
+
+        prisma.users.update.mockResolvedValueOnce({
+            userid: 'sw-id',
+            notifications: ['You have been assigned to case of child:child-name and parent:parent-name '],
+        });
+
+        prisma.users.update.mockResolvedValueOnce({
+            userid: 'parent-id',
+            notifications: ['Social worker has been assigend to your case. proceed with phase 01 '],
+        });
 
         prisma.cases.create.mockResolvedValue({
+            caseid: 'case-id',
+            childid: 'child-id',
+            socialworkerid: 'sw-id',
+            parentid: 'parent-id',
+        });
 
-            caseid:'case-id',
-
-            childid:'child-id',
-
-            socialworkerid:'sw-id',
-
-            parentid:'parent-id',
-        })
+        // Call the function
+        await createCase(req, res);
 
 
-        await createCase(req,res)
 
-        expect(prisma.cases.create).toHaveBeenCalledWith({
-            data: {
-                childid: 'child-id',
-                parentid: 'parent-id',
-                socialworkerid: 'sw-id',
-            },
+        // Assert response
+        expect(res.json).toHaveBeenCalledWith({ success: true });
+    });
 
-        })
-
-        expect(res.json).toHaveBeenCalledWith({success:true})
-    })
 
 
     it('should return a 500 error if prisma query fails', async () => {

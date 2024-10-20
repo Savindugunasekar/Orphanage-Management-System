@@ -44,6 +44,18 @@ const NavBar = () => {
         }
     }, [axiosPrivate, auth]);
 
+
+    const clearNotifications = async () => {
+        try {
+            const response = await axiosPrivate.post('/notifications/clear', { userId: auth.userId });
+            if (response.data.success) {
+                setNotifications([]);
+            }
+        } catch (error) {
+            console.error('Failed to clear notifications:', error);
+        }
+    }
+
     const routes = {
         admin: {
             home: '/admin',
@@ -95,10 +107,6 @@ const NavBar = () => {
         await logout();
     };
 
-    const clearNotifications = () => {
-        setNotifications([]);
-    };
-
     return (
         <div className="navbar bg-base-100 fixed top-0 left-0 w-full z-10 shadow-md ">
 
@@ -146,7 +154,7 @@ const NavBar = () => {
 
                 {/* Notification Modal */}
                 {showNotificationModal && (
-                    <div className="absolute right-0 mt-96 mr-5 bg-white shadow-xl rounded-2xl w-72 z-20">
+                    <div className="fixed top-20 border right-5 bg-white shadow-xl rounded-2xl w-72 z-50">
                         <div className="p-4">
                             <h4 className="font-semibold text-xl text-gray-800">Notifications</h4>
                             {notifications.length > 0 ? (
@@ -154,7 +162,8 @@ const NavBar = () => {
                                     {notifications.map((notification, index) => (
                                         <li
                                             key={index}
-                                            className="flex items-start p-3 bg-gray-100 rounded-lg shadow-sm text-sm text-gray-800">
+                                            className="flex items-start p-3 bg-gray-100 rounded-lg shadow-sm text-sm text-gray-800"
+                                        >
                                             <span className="flex-1">{notification}</span>
                                         </li>
                                     ))}
@@ -164,15 +173,17 @@ const NavBar = () => {
                             )}
                             {notifications.length > 0 && (
                                 <button
-                                    className="w-full mt-4 bg-primary text-white px-4 py-2 rounded-full text-center  transition duration-300 ease-in-out"
-                                    onClick={clearNotifications}>
+                                    className="w-full mt-4 bg-primary text-white px-4 py-2 rounded-full text-center transition duration-300 ease-in-out"
+                                    onClick={clearNotifications}
+                                >
                                     Clear All
                                 </button>
                             )}
                         </div>
                     </div>
-
                 )}
+
+
 
                 <Link to={"/login"}>
                     <button aria-label="Logout" onClick={signOut} className="btn btn-ghost btn-circle">

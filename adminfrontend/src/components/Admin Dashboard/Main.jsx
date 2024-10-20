@@ -1,11 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-import useLogout from '../../hooks/useLogout';
 
-import { RiInboxArchiveFill } from "react-icons/ri";
-import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { FaHouseUser } from "react-icons/fa";
 import { MdAssignment } from "react-icons/md";
@@ -48,7 +44,7 @@ const AdminDashboard = () => {
             case baseTabs[0].label:
                 return <AdminOverView overview={overview} />;
             case baseTabs[1].label:
-                return <AdminOrphanage orphanageList={orphanageList} setOrphanageList={setOrphanageList} />;
+                return <AdminOrphanage orphanageList={orphanageList} setOrphanageList={setOrphanageList} getAllOrphanages={getAllOrphanages} />;
             case baseTabs[2].label:
                 return <AdminAssign orphanageList={orphanageList} />;
             case baseTabs[3].label:
@@ -61,44 +57,38 @@ const AdminDashboard = () => {
     };
 
     const axiosPrivate = useAxiosPrivate()
-    const navigate = useNavigate()
-    const logout = useLogout()
     const [orphanageList, setOrphanageList] = useState([])
 
-    useEffect(() => {
-        const getAllOrphanages = async () => {
-            try {
-                const response = await axiosPrivate.get('/orphanage')
-                console.log("inside the getallorphanages", response.data.orphanageList)
-                setOrphanageList(response.data.orphanageList)
+    const getAllOrphanages = async () => {
+        try {
+            const response = await axiosPrivate.get('/orphanage')
+            console.log("inside the getallorphanages", response.data.orphanageList)
+            setOrphanageList(response.data.orphanageList)
 
-            } catch (error) {
-                console.error('Failed to fetch orphanages:', error);
-            }
+        } catch (error) {
+            console.error('Failed to fetch orphanages:', error);
         }
-        const getOverview = async () => {
-            try {
-                const response = await axiosPrivate.get('/orphanage/overview')
-                setOverview([
-                    { parameter: 'Total Orphanages', value: response.data.data.orphanageCount, icon: <FaHome />, color: 'blue' },
-                    { parameter: 'Total Children', value: response.data.data.childCount, icon: <FaChildren />, color: 'green' },
-                    { parameter: 'Total Staff Members', value: response.data.data.staffCount, icon: <IoPerson />, color: 'yellow' },
-                    { parameter: ' Total Social Workers', value: response.data.data.socialWorkerCount, icon: <IoPerson />, color: 'gray' },
-                    { parameter: 'Active Cases', value: response.data.data.ongoingCaseCount, icon: <SiGoogleforms />, color: 'purple' },
-                    { parameter: 'Pending Adoption Applications', value: response.data.data.pendingApplicationCount, icon: <FaFileWaveform />, color: 'red' }
-                ])
-            } catch (error) {
-                console.error('Failed to fetch overview:', error);
-            }
+    }
+    const getOverview = async () => {
+        try {
+            const response = await axiosPrivate.get('/orphanage/overview')
+            setOverview([
+                { parameter: 'Total Orphanages', value: response.data.data.orphanageCount, icon: <FaHome />, color: 'blue' },
+                { parameter: 'Total Children', value: response.data.data.childCount, icon: <FaChildren />, color: 'green' },
+                { parameter: 'Total Staff Members', value: response.data.data.staffCount, icon: <IoPerson />, color: 'yellow' },
+                { parameter: ' Total Social Workers', value: response.data.data.socialWorkerCount, icon: <IoPerson />, color: 'gray' },
+                { parameter: 'Active Cases', value: response.data.data.ongoingCaseCount, icon: <SiGoogleforms />, color: 'purple' },
+                { parameter: 'Pending Adoption Applications', value: response.data.data.pendingApplicationCount, icon: <FaFileWaveform />, color: 'red' }
+            ])
+        } catch (error) {
+            console.error('Failed to fetch overview:', error);
         }
+    }
+
+    useEffect(() => {
         getOverview()
         getAllOrphanages()
     }, [])
-
-    const signout = async () => {
-        await logout();
-        navigate('/')
-    }
 
     return (
         <div className='flex flex-col sm:flex-row mt-20'>

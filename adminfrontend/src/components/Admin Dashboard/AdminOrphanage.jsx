@@ -11,14 +11,14 @@ import OrphanageForm from './OrphanageForm';
 import UpdateOrphanage from './UpdateOrphanage';
 import { ConfirmationModal } from './../ConfirmationModal';
 
-export const AdminOrphanage = ({ orphanageList, setOrphanageList }) => {
+export const AdminOrphanage = ({ orphanageList, setOrphanageList, getAllOrphanages }) => {
 
     const axiosPrivate = useAxiosPrivate()
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState("");
     const [showModal, setShowModal] = useState(false);
-    
+
 
     const [orphanageForm, setOrphanageForm] = useState(false)
     const [updateForm, setUpdateForm] = useState(false)
@@ -85,15 +85,15 @@ export const AdminOrphanage = ({ orphanageList, setOrphanageList }) => {
             else {
                 console.log(children.data.childrenList.length)
                 toast.error('Cannot delete orphanage with children');
-                
+
             }
 
         } catch (error) {
             console.error('Failed to delete orphanage:', error);
-           
+
             setOrphanageList(orphanageList);
         }
-        finally{
+        finally {
             setShowModal(false);
         }
     };
@@ -174,7 +174,7 @@ export const AdminOrphanage = ({ orphanageList, setOrphanageList }) => {
                                             e.stopPropagation();
                                             setOrphanageId(item.orphanageid)
                                             setUpdateForm(true)
-                                            
+
                                         }}
                                     />
                                     <PrimaryButton
@@ -193,9 +193,9 @@ export const AdminOrphanage = ({ orphanageList, setOrphanageList }) => {
 
                 ))}
             </InfiniteScroll>
-            {orphanageForm && <OrphanageForm setOrphanageForm={setOrphanageForm} />}
-            {updateForm && <UpdateOrphanage id={orphanageId} setUpdateForm={setUpdateForm} />}
-            {showModal && <ConfirmationModal head={"Delete this Orphanage"} body={"Are you sure you want to delete this orphanage?"} setVisibility={setShowModal} handleConfirmation={() =>handleDeleteOrphanage(orphanageId)} />}
+            {orphanageForm && <OrphanageForm setOrphanageForm={setOrphanageForm} getAllOrphanages={getAllOrphanages} />}
+            {updateForm && <UpdateOrphanage id={orphanageId} setUpdateForm={setUpdateForm} getAllOrphanages={getAllOrphanages} />}
+            {showModal && <ConfirmationModal head={"Delete this Orphanage"} body={"Are you sure you want to delete this orphanage?"} setVisibility={setShowModal} handleConfirmation={() => handleDeleteOrphanage(orphanageId)} />}
         </div>
     )
 }

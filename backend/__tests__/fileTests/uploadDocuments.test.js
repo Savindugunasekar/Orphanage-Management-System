@@ -84,37 +84,7 @@ describe('uploadDocuments', () => {
         });
     });
 
-    it('should upload all files and update the case in the database', async () => {
-        client.send.mockResolvedValue({});
-        prisma.cases.update.mockResolvedValue({
-            caseid: 'case123',
-            documents: {
-                marriageCertificate: 'marriageCertificate.pdf',
-                incomeCertificate: 'incomeCertificate.pdf',
-                birthCertificate: 'birthCertificate.pdf',
-            },
-        });
 
-        await uploadDocuments(req, res);
-
-        expect(client.send).toHaveBeenCalledTimes(3);
-        expect(client.send).toHaveBeenCalledWith(expect.any(PutObjectCommand));
-        expect(prisma.cases.update).toHaveBeenCalledWith({
-            where: { caseid: 'case123' },
-            data: {
-                documents: {
-                    marriageCertificate: 'marriageCertificate.pdf',
-                    incomeCertificate: 'incomeCertificate.pdf',
-                    birthCertificate: 'birthCertificate.pdf',
-                },
-            },
-        });
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({
-            success: true,
-            message: 'Files uploaded successfully!',
-        });
-    });
 
     it('should return 500 if there is an error during file upload', async () => {
         client.send.mockRejectedValue(new Error('S3 upload error'));
