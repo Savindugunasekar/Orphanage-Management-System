@@ -37,23 +37,23 @@ const handleNewUser = async (req, res) => {
         let result;
         if (!user) {
             // Check if the email is a Gmail address
-            const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+            // const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
 
-            if (isGmail) {
-                const token = jwt.sign({ email }, process.env.VERIFY_TOKEN_SECRET, { expiresIn: '1hr' });
+            // if (isGmail) {
+            //     const token = jwt.sign({ email }, process.env.VERIFY_TOKEN_SECRET, { expiresIn: '1hr' });
 
-                const verificationUrl = `${process.env.BASE_URL}/verify?token=${token}`;
+            //     const verificationUrl = `${process.env.BASE_URL}/verify?token=${token}`;
 
-                // Send verification email
-                await transporter.sendMail({
-                    from: process.env.EMAIL,
-                    to: email,
-                    subject: 'Email Verification',
-                    html: `<h1>Email Confirmation</h1>
-                           <p>Click the link below to verify your email:</p>
-                           <a href="${verificationUrl}">Verify Email</a>`,
-                });
-            }
+            //     // Send verification email
+            //     await transporter.sendMail({
+            //         from: process.env.EMAIL,
+            //         to: email,
+            //         subject: 'Email Verification',
+            //         html: `<h1>Email Confirmation</h1>
+            //                <p>Click the link below to verify your email:</p>
+            //                <a href="${verificationUrl}">Verify Email</a>`,
+            //     });
+            // }
 
             result = await prisma.users.create({
                 data: {

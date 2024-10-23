@@ -11,13 +11,22 @@ const prisma = new PrismaClient(); // Initialize Prisma Client
 
 const donate = async (req, res) => {
   try {
-    const { amount, first_name, last_name, email, address, nic, country, phone } = req.body;
+    const {
+      amount,
+      first_name,
+      last_name,
+      email,
+      address,
+      nic,
+      country,
+      phone,
+    } = req.body;
 
     // Create a single line item for donation
     const line_items = [
       {
         price_data: {
-          currency: "usd",
+          currency: "LKR",
           product_data: {
             name: "Donation",
           },
@@ -62,4 +71,15 @@ const donate = async (req, res) => {
   }
 };
 
-module.exports = { donate }
+const getAllDonations = async (req,res) => {
+  console.log("Fetching donations from Backend");
+  try {
+    const donations = await prisma.donation.findMany();
+    console.log(donations); // Log the donation data
+    return res.json({donations});
+  } catch (error) {
+    console.error("Failed to fetch donations:", error);
+  }
+};
+
+module.exports = { donate, getAllDonations };
