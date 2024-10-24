@@ -185,9 +185,9 @@ const updateApplicationStatus = async (req, res) => {
 
     const userId = application.userid
 
-    if(status === "Rejected"){
+    if (status === "Rejected") {
       var notification = "Your adoption application has been rejected"
-    }else if(status === "Accepted"){
+    } else if (status === "Accepted") {
       var notification = "Your adoption application has been accepted. Now choose a child from given options"
     }
 

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import useAuth from "../../hooks/useAuth";
+import PrimaryButton from "../elements/PrimaryButton";
+import toast from "react-hot-toast";
 
 const ROLES = {
   User: 1010,
@@ -25,6 +27,7 @@ const Phase1 = ({ caseId, caseDetails }) => {
   });
   const [uploadStatus, setUploadStatus] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [phase1Loading, setPhase1Loading] = useState(false);
 
   useEffect(() => {
     const fetchDocumentUrls = async () => {
@@ -43,11 +46,18 @@ const Phase1 = ({ caseId, caseDetails }) => {
 
   const phase1Complete = async () => {
     try {
+<<<<<<< HEAD
       const status = "Completed"
       const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}&status=${status}`);
+=======
+      setPhase1Loading(true);
+      const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}`);
+>>>>>>> 5bd35444a52102ae38183d826785f52258498771
 
       if (response.status === 200) {
+        setPhase1Loading(false);
         console.log("succcessfully completed");
+        toast.success("Phase 1 completed successfully");
       }
     } catch (error) {
       console.log(error);
@@ -242,13 +252,14 @@ const Phase1 = ({ caseId, caseDetails }) => {
                   </div>
                 </div>
               </div>
-              <button
+              <PrimaryButton
                 onClick={handleUpload}
-                className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark mt-6"
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading" : "Upload Documents"}
-              </button>
+                loading={isUploading}
+                text={'Upload Documents'}
+                disabled={!files.marriageCertificate ||
+                  !files.incomeCertificate ||
+                  !files.birthCertificate}
+                className={'my-5'} />
               {uploadStatus && (
                 <p className="mt-4 text-ld text-green-500">{uploadStatus}</p>
               )}
@@ -296,6 +307,7 @@ const Phase1 = ({ caseId, caseDetails }) => {
             </div>
 
             {caseDetails.phase1 === "Ongoing" && (
+
               <div>
                 <button
                 onClick={phase1Complete}
@@ -312,6 +324,14 @@ const Phase1 = ({ caseId, caseDetails }) => {
             </button>
               </div>
               
+
+              // <PrimaryButton
+              //   onClick={phase1Complete}
+              //   text="Approve"
+              //   className="mt-6"
+              //   loading={phase1Loading} />
+
+
             )}
           </div>
         )}

@@ -113,7 +113,7 @@ const Login = () => {
               alt="Phone image"
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <h2 className="text-white text-4xl sm:text-6xl border font-bold drop-shadow-xl p-2">OrphanCare</h2>
+
             </div>
           </div>
 

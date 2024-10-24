@@ -1,12 +1,36 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import PrimaryButton from "../elements/PrimaryButton";
 import { RiCloseLargeFill } from "react-icons/ri";
 import toast from "react-hot-toast";
 
-const OrphanageForm = ({ setOrphanageForm }) => {
+
+const NAME_REGEX = /^[A-Za-z\s]+$/;
+const ADDRESS_REGEX = /^[A-Za-z0-9\s,./-]+$/;
+const CAPACITY_REGEX = /^(?:[1-9]\d{0,2}|101)$/;
+const TELNO_REGEX = /^\d{10}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const OrphanageForm = ({ setOrphanageForm, getAllOrphanages }) => {
   const axiosPrivate = useAxiosPrivate();
+
+  const [validName, setValidName] = useState(false);
+  const [validAddress, setValidAddress] = useState(false);
+  const [validCapacity, setValidCapacity] = useState(false);
+  const [validTelno, setValidTelno] = useState(false);
+  const [validHead_email, setValidHead_email] = useState(false);
+  const [validDistrict, setValidDistrict] = useState(false);
+
+  const warningText = {
+    name: "Only letters allowed",
+    address: "Use letters and numbers",
+    capacity: "Enter a number (1-100)",
+    telno: "Must be 10 digits",
+    head_email: "Invalid email",
+    district: "Select a district"
+  };
+
+
 
   // List of districts in Sri Lanka
   const districts = [
@@ -46,6 +70,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
       });
 
       if (response.status === 200) {
+        await getAllOrphanages();
         console.log("Orphanage added successfully");
         toast.success("Orphanage added successfully");
         setOrphanageForm(false);  // Close the form after successful submission
@@ -59,7 +84,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
           head_email: "",
           district: "" // Reset district as well
         });
-        
+
       } else {
         console.error("Failed to add orphanage");
       }
@@ -67,6 +92,30 @@ const OrphanageForm = ({ setOrphanageForm }) => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    setValidName(new RegExp(NAME_REGEX).test(orphanageDetails.orphanagename));
+  }, [orphanageDetails.orphanagename]);
+
+  useEffect(() => {
+    setValidAddress(new RegExp(ADDRESS_REGEX).test(orphanageDetails.address));
+  }, [orphanageDetails.address]);
+
+  useEffect(() => {
+    setValidCapacity(new RegExp(CAPACITY_REGEX).test(orphanageDetails.capacity));
+  }, [orphanageDetails.capacity]);
+
+  useEffect(() => {
+    setValidTelno(new RegExp(TELNO_REGEX).test(orphanageDetails.telno));
+  }, [orphanageDetails.telno]);
+
+  useEffect(() => {
+    setValidHead_email(new RegExp(EMAIL_REGEX).test(orphanageDetails.head_email));
+  }, [orphanageDetails.head_email]);
+
+  useEffect(() => {
+    setValidDistrict(districts.includes(orphanageDetails.district));
+  }, [orphanageDetails.district]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center py-20 backdrop-blur-sm ">
@@ -90,7 +139,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
             <div className="flex flex-col gap-5 md:flex-row">
               <div className="flex flex-col w-full">
                 <label className="mb-3 font-semibold text-md" htmlFor="orphanagename">
-                  Orphanage Name:
+                  Orphanage Name: {!validName && <span className='text-red-500 text-xs'>{warningText.name}</span>}
                 </label>
                 <input
                   className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -105,7 +154,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
 
               <div className="flex flex-col w-full">
                 <label className="mb-3 font-semibold text-md" htmlFor="address">
-                  Orphanage Address:
+                  Orphanage Address: {!validAddress && <span className='text-red-500 text-xs'>{warningText.address}</span>}
                 </label>
                 <input
                   className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -122,7 +171,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
             <div className="flex flex-col gap-5 md:flex-row">
               <div className="flex flex-col w-full">
                 <label className="mb-3 font-semibold text-md" htmlFor="capacity">
-                  Orphanage Capacity:
+                  Orphanage Capacity: {!validCapacity && <span className='text-red-500 text-xs'>{warningText.capacity}</span>}
                 </label>
                 <input
                   className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -131,14 +180,15 @@ const OrphanageForm = ({ setOrphanageForm }) => {
                   id="capacity"
                   name="capacity"
                   value={orphanageDetails.capacity}
-                  min="0"
+                  min="1"
+                  max="100"
                   required
                 />
               </div>
 
               <div className="flex flex-col w-full">
                 <label className="mb-3 font-semibold text-md" htmlFor="telno">
-                  Orphanage Tel Number:
+                  Orphanage Tel Number: {!validTelno && <span className='text-red-500 text-xs'>{warningText.telno}</span>}
                 </label>
                 <input
                   className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -155,7 +205,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
             <div className="flex flex-col gap-5 md:flex-row">
               <div className="flex flex-col w-full">
                 <label className="mb-3 font-semibold text-md" htmlFor="head_email">
-                  Assign Head Email:
+                  Assign Head Email: {!validHead_email && <span className='text-red-500 text-xs'>{warningText.head_email}</span>}
                 </label>
                 <input
                   className="w-full bg-gray-100 h-[40px] rounded-md px-4 py-3 border-none focus-visible:ring-primary !important"
@@ -171,7 +221,7 @@ const OrphanageForm = ({ setOrphanageForm }) => {
 
             <div className="flex flex-col w-full">
               <label className="mb-3 font-semibold text-md" htmlFor="district">
-                Orphanage District:
+                Orphanage District: {!validDistrict && <span className='text-red-500 text-xs'> *required</span>}
               </label>
               <select
                 className="w-full bg-gray-100 h-[40px] rounded-md px-4  border-none focus-visible:ring-primary !important"
@@ -193,7 +243,10 @@ const OrphanageForm = ({ setOrphanageForm }) => {
           </form>
         </div>
         <div className="flex flex-row justify-end m-5">
-          <PrimaryButton onClick={addOrphanage} text={'Submit'} />
+          <PrimaryButton
+            onClick={addOrphanage}
+            text={'Submit'}
+            disabled={!validName || !validAddress || !validCapacity || !validHead_email || !validTelno || !validDistrict} />
         </div>
       </div>
     </div>

@@ -93,11 +93,11 @@ const handleLogin = async (req, res) => {
                     refreshtoken: refreshToken,
                 },
             });
-
+            console.log('hi');
 
             res.cookie('jwt', refreshToken, {
                 httpOnly: true,
-                sameSite: 'None',
+                sameSite: 'Lax',
                 secure: false,
                 maxAge: 24 * 60 * 60 * 1000
             });

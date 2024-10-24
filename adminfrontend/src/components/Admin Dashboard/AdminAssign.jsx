@@ -9,7 +9,6 @@ export const AdminAssign = ({ orphanageList }) => {
     const axiosPrivate = useAxiosPrivate()
     const [showModal, setShowModal] = useState(false)
     const [selectedAssign, setSelectedAssign] = useState("")
-
     const [socialWorkerList, setSocialWorkerList] = useState([]);
     const [staffList, setStaffList] = useState([]);
 
@@ -41,7 +40,6 @@ export const AdminAssign = ({ orphanageList }) => {
 
     const handleAssign = async (data) => {
         try {
-
             let response;
             if (selectedAssign === 'socialworker') {
                 response = await axiosPrivate.post('/socialworker', data, {
@@ -49,14 +47,14 @@ export const AdminAssign = ({ orphanageList }) => {
                         'Content-Type': 'application/json'
                     }
                 })
-                setLoading(false)
+                await getAllSocialWorkers()
             } else if (selectedAssign === 'staff') {
                 response = await axiosPrivate.post('/staff', data, {
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 })
-
+                await getAllStaff()
             }
             toast.success('Assigned successfully');
             console.log('assigned successfully');
@@ -71,7 +69,7 @@ export const AdminAssign = ({ orphanageList }) => {
     return (
         <div className='mx-2'>
 
-            <h1 className='text-4xl font-bold text-center text-gray-800'>Workforce Management</h1>
+            <h1 className='text-4xl font-bold text-center text-gray-800'>Staff Management</h1>
             <div role="tablist" className="tabs tabs-lifted w-fit my-5">
                 <a role="tab" onClick={() => setSelectedTab('Staff')} className={`tab ${selectedTab == 'Staff' && 'tab-active text-yellow-600'}  text-xl`}>Staff</a>
                 <a role="tab" onClick={() => setSelectedTab('Social')} className={`tab ${selectedTab == 'Social' && 'tab-active text-green-600'}  text-xl`}>Social Workers</a>
