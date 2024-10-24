@@ -48,6 +48,7 @@ model approvedapplications {
   application   application @relation(fields: [applicationid], references: [applicationid], onDelete: NoAction, onUpdate: NoAction)
   child         child       @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
   users         users       @relation(fields: [parentid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  cases         cases[]
 }
 
 model broadcastmassages {
@@ -57,20 +58,22 @@ model broadcastmassages {
 }
 
 model cases {
-  caseid         String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  socialworkerid String       @db.Uuid
-  parentid       String       @db.Uuid
-  childid        String       @db.Uuid
-  documents      Json?
-  phase1         String?      @default("Ongoing") @db.VarChar(255)
-  phase2         String?      @default("Ongoing") @db.VarChar(255)
-  phase3         String?      @default("Ongoing") @db.VarChar(255)
-  meetings       Json[]
-  home_visits    Json[]
-  approval_form  Json?
-  child          child        @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
-  users          users        @relation(fields: [parentid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
-  socialworker   socialworker @relation(fields: [socialworkerid], references: [socialworkerid], onDelete: NoAction, onUpdate: NoAction)
+  caseid               String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  socialworkerid       String                @db.Uuid
+  parentid             String                @db.Uuid
+  childid              String                @db.Uuid
+  documents            Json?
+  phase1               String?               @default("Ongoing") @db.VarChar(255)
+  phase2               String?               @default("Ongoing") @db.VarChar(255)
+  phase3               String?               @default("Ongoing") @db.VarChar(255)
+  meetings             Json[]
+  home_visits          Json[]
+  approval_form        Json?
+  application_id       String?               @db.Uuid
+  approvedapplications approvedapplications? @relation(fields: [application_id], references: [applicationid], onDelete: NoAction, onUpdate: NoAction, map: "cases_application_id")
+  child                child                 @relation(fields: [childid], references: [childid], onDelete: NoAction, onUpdate: NoAction)
+  users                users                 @relation(fields: [parentid], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  socialworker         socialworker          @relation(fields: [socialworkerid], references: [socialworkerid], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model child {

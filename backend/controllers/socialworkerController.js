@@ -1,5 +1,6 @@
 const db = require("../config/dbConn");
 const { PrismaClient } = require('@prisma/client');
+const { transporter } = require("../config/nodemailer");
 const prisma = new PrismaClient();
 
 
@@ -110,6 +111,7 @@ const addSocialWorker = async (req, res) => {
       }
     });
 
+
     const newSocialWorkerId = newSocialWorker.userid;
 
 
@@ -121,6 +123,17 @@ const addSocialWorker = async (req, res) => {
         orphanageid: orphanageId
       }
     });
+
+    const verificationUrl = `${process.env.BASE_URL}/register`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: email,
+      subject: 'Assigned as Social Worker',
+      html: `<h1>Complete Your Registration</h1>
+             <p>You have been assigned as social worker. Complete your resgistration from link below:</p>
+             <a href="${verificationUrl}">Register here</a>`,
+  });
 
 
     res.json({

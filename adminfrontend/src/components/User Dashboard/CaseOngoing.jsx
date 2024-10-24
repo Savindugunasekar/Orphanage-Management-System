@@ -7,6 +7,7 @@ import ProgressBar from "./ProgressBar";
 import Phase1 from "./Phase1";
 import Phase2 from "./Phase2";
 import Phase3 from "./Phase3";
+import DocumentsRejected from "./DocumentsRejected";
 
 const CaseOngoing = ({ caseDetails, currentPhase, setCurrentState }) => {
   const axiosPrivate = useAxiosPrivate();
@@ -28,6 +29,9 @@ const CaseOngoing = ({ caseDetails, currentPhase, setCurrentState }) => {
     progressValue = 6; // Adjust progress value as needed
     isPhase2Visible = true;
   }
+  
+
+
 
   if (caseDetails.phase2 === "Completed") {
     isPhase2Visible = false;
@@ -43,7 +47,9 @@ const CaseOngoing = ({ caseDetails, currentPhase, setCurrentState }) => {
 
   return (
     <div>
+      
       <div className="min-h-screen p-6 bg-gray-50">
+      {caseDetails.phase1 !== "Rejected" && <div>
         <ProgressBar step={progressValue} />
         <div className="p-6 mb-6 bg-white rounded-lg shadow-lg">
           <h1 className="mb-4 text-2xl font-bold text-gray-800">
@@ -62,6 +68,12 @@ const CaseOngoing = ({ caseDetails, currentPhase, setCurrentState }) => {
             {caseDetails.socialworker.username}
           </p>
         </div>
+      </div>  }
+        
+
+
+      {caseDetails.phase1==="Rejected" && <DocumentsRejected caseDetails = {caseDetails}/>}
+
 
         {/* Phase 1 */}
         {isPhase1Visible && (

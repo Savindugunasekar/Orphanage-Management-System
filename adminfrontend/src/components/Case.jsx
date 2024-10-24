@@ -55,6 +55,11 @@ const Case = () => {
               Approved
             </span>
           )}
+          {caseDetails.phase1 === 'Rejected' && (
+            <span className="ml-2 px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-full">
+              Rejected
+            </span>
+          )}
         </div>
         <div className="px-4 py-5 bg-gray-100 rounded-lg">
           <Phase1 caseId={caseId} caseDetails={caseDetails} />

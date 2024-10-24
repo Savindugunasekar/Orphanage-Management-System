@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const { application } = require("express");
 const prisma = new PrismaClient();
 
 const getAllCases = async (req, res) => {
@@ -134,6 +135,7 @@ const getCaseById = async (req, res) => {
       include: {
         child: true,
         users: true,
+        approvedapplications:true,
         socialworker: {
           include: {
             users: true,
@@ -148,12 +150,14 @@ const getCaseById = async (req, res) => {
 
     const caseItem = {
       caseid: rawCaseDetails.caseid,
+      applicationid:rawCaseDetails.application_id,
       phase1: rawCaseDetails.phase1,
       phase2: rawCaseDetails.phase2,
       phase3: rawCaseDetails.phase3,
       child: rawCaseDetails.child,
       parent: rawCaseDetails.users,
       socialworker: rawCaseDetails.socialworker.users,
+      
     };
 
     res.status(200).json(caseItem);
@@ -162,6 +166,39 @@ const getCaseById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+const deleteCaseById = async (req, res) => {
+  try {
+    const { caseDetails } = req.body;
+
+    // Check if the case exists
+    const existingCase = await prisma.cases.findUnique({
+      where: { caseid: caseDetails.caseid }
+    });
+
+    if (!existingCase) {
+      return res.status(404).json({ message: 'Case not found' });
+    }
+
+    // Delete the case and the approved application
+    const deletedCase = await prisma.cases.delete({
+      where: { caseid: caseDetails.caseid }
+    });
+
+    const deleteApprovedApplication = await prisma.approvedapplications.delete({
+      where: { applicationid: caseDetails.applicationid }
+    });
+
+    // Return a success response
+    return res.status(200).json({ message: 'Case and approved application deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting case:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 
 const getUserCases = async (req, res) => {
   const { userId } = req;
@@ -214,7 +251,7 @@ const getUserCases = async (req, res) => {
 
 const phase1Completed = async (req, res) => {
   try {
-    const { caseId } = req.query;
+    const { caseId,status } = req.query;
 
     const parent = await prisma.cases.findUnique({
       where: {
@@ -225,8 +262,15 @@ const phase1Completed = async (req, res) => {
       }
     });
 
+    let notification;
 
-    const notification = "Documentation has been verified. Proceed with phase2"
+    if (status=="Completed"){
+ notification = "Documentation has been verified. Proceed with phase2"
+    }else{
+       notification = "Documents are invalid. Your application has been rejected. Try applying again"
+    }
+
+    
 
     await prisma.users.update({
       where: {
@@ -241,18 +285,35 @@ const phase1Completed = async (req, res) => {
 
 
 
+if (status == "Completed"){
+
+  const updatedCase = await prisma.cases.update({
+    where: {
+      caseid: caseId,
+    },
+    data: {
+      phase1: "Completed",
+    },
+  });
+
+  res.status(200).json({ message: "Phase 1 completed" });
+
+}else{
+  const updatedCase = await prisma.cases.update({
+    where: {
+      caseid: caseId,
+    },
+    data: {
+      phase1: "Rejected",
+    },
+  });
+
+  res.status(200).json({ message: "Application Rejected" });
 
 
-    const updatedCase = await prisma.cases.update({
-      where: {
-        caseid: caseId,
-      },
-      data: {
-        phase1: "Completed",
-      },
-    });
+}
 
-    res.status(200).json({ message: "Phase 1 completed" });
+    
   } catch (error) {
     console.log("Error updating case:", error);
     res.status(500).json({ error: "Failed to update case." });
@@ -577,5 +638,6 @@ module.exports = {
   getVisits,
   updateVisits,
   setApproval,
-  getApproval
+  getApproval,
+  deleteCaseById
 };

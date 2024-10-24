@@ -43,7 +43,8 @@ const Phase1 = ({ caseId, caseDetails }) => {
 
   const phase1Complete = async () => {
     try {
-      const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}`);
+      const status = "Completed"
+      const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}&status=${status}`);
 
       if (response.status === 200) {
         console.log("succcessfully completed");
@@ -52,6 +53,26 @@ const Phase1 = ({ caseId, caseDetails }) => {
       console.log(error);
     }
   };
+
+  const phase1Rejected = async ()=>{
+    try {
+
+      const status = "Rejected"
+      const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}&status=${status}`);
+
+      if (response.status === 200) {
+        console.log("application rejected");
+      }
+
+
+      
+    } catch (error) {
+
+      console.log(error);
+      
+      
+    }
+  }
 
   const handleFileChange = (event, docType) => {
     const file = event.target.files[0];
@@ -275,12 +296,22 @@ const Phase1 = ({ caseId, caseDetails }) => {
             </div>
 
             {caseDetails.phase1 === "Ongoing" && (
-              <button
+              <div>
+                <button
                 onClick={phase1Complete}
                 className="text-xl border-2 border-primary my-5 py-3 px-4 rounded-lg text-primary hover:bg-primary hover:text-white font-semibold transition-colors duration-300"
               >
                 Approve
               </button>
+              <button
+              onClick={phase1Rejected}
+             
+              className="text-xl border-2 border-red-500 my-5 mx-4 py-3 px-4 rounded-lg text-red-500 hover:bg-red-500 hover:text-white font-semibold transition-colors duration-300"
+            >
+              Reject
+            </button>
+              </div>
+              
             )}
           </div>
         )}

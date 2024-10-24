@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const { transporter } = require("../config/nodemailer");
 const prisma = new PrismaClient();
 
 const addStaff = async (req, res) => {
@@ -13,16 +14,31 @@ const addStaff = async (req, res) => {
         },
       });
 
+      
       await prisma.staff.create({
         data: {
           staffid: newStaff.userid,
           orphanageid: orphanageId,
         },
       });
+     
+
+});
+const verificationUrl = `${process.env.BASE_URL}/register`;
+
+await transporter.sendMail({
+  from: process.env.EMAIL,
+  to: email,
+  subject: 'Assigned to orphanage staff',
+  html: `<h1>Complete Your Registration</h1>
+         <p>You have been assigned as staff member. Complete your resgistration from link below:</p>
+         <a href="${verificationUrl}">Register here</a>`,
+});
+
 
       console.log("Created new staff");
       res.json({ success: true });
-    });
+   
   } catch (error) {
     console.error(error);
     res.status(500).json({

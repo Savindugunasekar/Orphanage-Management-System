@@ -1,13 +1,33 @@
 import React, { useState } from 'react'
-import BeforeApply from './BeforeApply'
+import BeforeApply from './BeforeApply';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
-const FormRejected = () => {
+const DocumentsRejected = ({caseDetails}) => {
+
+    const axiosPrivate =useAxiosPrivate();
 
     const [showBeforeApply, setShowBeforeApply] = useState(false);
-
-    const handleApplyAgain = () => {
-        setShowBeforeApply(true)
-    }
+    const handleApplyAgain = async () => {
+        try {
+          const response = await axiosPrivate.post('/case/delete', {caseDetails}, {
+            headers: {
+              "Content-Type": "application/json"
+            }
+          });
+      
+          // Check if the request was successful
+          if (response.status === 200) {
+            console.log('Case deleted successfully');
+            setShowBeforeApply(true); // Show the BeforeApply component
+          } else {
+            console.log('Failed to delete case');
+          }
+      
+        } catch (error) {
+          console.error('Error deleting case:', error);
+        }
+      };
+      
 
 
 
@@ -19,13 +39,13 @@ const FormRejected = () => {
                 
                 <div id="reject-content" className="flex flex-col items-center w-3/5 text-center mx-auto">
                 <h1 className='font-bold text-5xl my-10'>
-                    Application <span className='text-red-500 inline'>Rejected</span>
+                    Documents  <span className='text-red-500 inline'>Rejected</span>
                 </h1>
 
                 <p>We regret to inform you that after careful review, your adoption application has not been approved at this time.
                     We understand this may be disappointing, but our priority is to ensure the best possible care and placement for the children.</p>
                 <h2 className='font-bold text-4xl my-10'>
-                    Why Was My Application Rejected?
+                    Why Was My Documents Rejected?
                 </h2>
                 <p className='font-semibold'>There could be various reasons for the rejection, such as:</p>
                 <p className=''>
@@ -65,4 +85,4 @@ const FormRejected = () => {
     )
 }
 
-export default FormRejected
+export default DocumentsRejected
