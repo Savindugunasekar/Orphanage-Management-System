@@ -46,13 +46,10 @@ const Phase1 = ({ caseId, caseDetails }) => {
 
   const phase1Complete = async () => {
     try {
-<<<<<<< HEAD
+
       const status = "Completed"
       const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}&status=${status}`);
-=======
-      setPhase1Loading(true);
-      const response = await axiosPrivate.put(`case/phase1?caseId=${caseId}`);
->>>>>>> 5bd35444a52102ae38183d826785f52258498771
+
 
       if (response.status === 200) {
         setPhase1Loading(false);
