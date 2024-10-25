@@ -41,7 +41,7 @@ export default function Payment() {
     console.log("Inside the donate function");
     
     try {
-      const url = "http://localhost:4000"; // Define your API URL here
+      const url = "http://51.21.150.105:4000"; // Define your API URL here
       const response = await axios.post(`${url}/donate`, data);
 
       console.log("Order Response:", response.data);

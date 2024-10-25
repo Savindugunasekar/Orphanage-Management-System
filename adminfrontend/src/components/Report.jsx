@@ -20,9 +20,6 @@ export default function Report() {
     const getAllApplications = async () => {
       try {
         const response = await axiosPrivate.get("/application");
-        // console.log(response.data.applicationList);
-
-        // Initialize counts for each status
         const counts = {
           Accepted: 0,
           Rejected: 0,
@@ -89,7 +86,7 @@ export default function Report() {
         return response.data.childrenList.length;
       } catch (error) {
         console.error("Failed to fetch orphanage children:", error);
-        return 0; // In case of an error, return 0
+        return 0;
       }
     };
 
@@ -169,9 +166,9 @@ const getAlldonations = async () => {
       } else {
         countries[donation.country] += donationAmount;
       }
-    }); // Fixed closing parenthesis for forEach
+    }); 
 
-    // Prepare data for the chart
+
     const labels = Object.keys(countries);
     const data = Object.values(countries);
 
@@ -218,20 +215,20 @@ getAlldonations();
   }, [axiosPrivate]);
 
   return (
-    <div className="flex mt-20">
-      <div className="w-1/3 h-1/3">
+    <div className="flex flex-col mt-z0 md:flex-row">
+      <div className="w-full md:w-1/3 h-1/3">
         <div className="mb-4 text-2xl font-semibold text-center">
           Current Child Count in Each Orphanage
         </div>
         <canvas ref={barChartRef} width="100" height="100"></canvas>
       </div>
-      <div className="w-1/3 h-1/3"> 
+      <div className="w-full md:w-1/3 h-1/3"> 
         <div className="mb-4 text-2xl font-semibold text-center">
           Application Status
         </div>
         <canvas ref={pieChartRef} width="100" height="100"></canvas>
       </div>
-      <div className="w-1/3 h-1/3">
+      <div className="w-full md:w-1/3 h-1/3">
         <div className="mb-4 text-2xl font-semibold text-center">
           Donation Status
         </div>

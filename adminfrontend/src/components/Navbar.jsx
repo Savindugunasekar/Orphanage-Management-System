@@ -164,7 +164,7 @@ const NavBar = () => {
         </button>
 
         
-        {!auth.roles.includes(ROLES.Admin) && (
+        {!auth?.roles?.includes(ROLES.Admin) && (
           <button onClick={() => setShowBroadcastModal(true)}>
             <img
               src="https://www.svgrepo.com/show/379825/broadcast.svg"
