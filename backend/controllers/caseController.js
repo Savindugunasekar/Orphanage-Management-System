@@ -135,7 +135,7 @@ const getCaseById = async (req, res) => {
       include: {
         child: true,
         users: true,
-        approvedapplications:true,
+        approvedapplications: true,
         socialworker: {
           include: {
             users: true,
@@ -150,14 +150,14 @@ const getCaseById = async (req, res) => {
 
     const caseItem = {
       caseid: rawCaseDetails.caseid,
-      applicationid:rawCaseDetails.application_id,
+      applicationid: rawCaseDetails.application_id,
       phase1: rawCaseDetails.phase1,
       phase2: rawCaseDetails.phase2,
       phase3: rawCaseDetails.phase3,
       child: rawCaseDetails.child,
       parent: rawCaseDetails.users,
       socialworker: rawCaseDetails.socialworker.users,
-      
+
     };
 
     res.status(200).json(caseItem);
@@ -251,7 +251,7 @@ const getUserCases = async (req, res) => {
 
 const phase1Completed = async (req, res) => {
   try {
-    const { caseId,status } = req.query;
+    const { caseId, status } = req.query;
 
     const parent = await prisma.cases.findUnique({
       where: {
@@ -264,13 +264,13 @@ const phase1Completed = async (req, res) => {
 
     let notification;
 
-    if (status=="Completed"){
- notification = "Documentation has been verified. Proceed with phase2"
-    }else{
-       notification = "Documents are invalid. Your application has been rejected. Try applying again"
+    if (status == "Completed") {
+      notification = "Documentation has been verified. Proceed with phase2"
+    } else {
+      notification = "Documents are invalid. Your application has been rejected. Try applying again"
     }
 
-    
+
 
     await prisma.users.update({
       where: {
@@ -285,35 +285,35 @@ const phase1Completed = async (req, res) => {
 
 
 
-if (status == "Completed"){
+    if (status == "Completed") {
 
-  const updatedCase = await prisma.cases.update({
-    where: {
-      caseid: caseId,
-    },
-    data: {
-      phase1: "Completed",
-    },
-  });
+      const updatedCase = await prisma.cases.update({
+        where: {
+          caseid: caseId,
+        },
+        data: {
+          phase1: "Completed",
+        },
+      });
 
-  res.status(200).json({ message: "Phase 1 completed" });
+      res.status(200).json({ message: "Phase 1 completed" });
 
-}else{
-  const updatedCase = await prisma.cases.update({
-    where: {
-      caseid: caseId,
-    },
-    data: {
-      phase1: "Rejected",
-    },
-  });
+    } else {
+      const updatedCase = await prisma.cases.update({
+        where: {
+          caseid: caseId,
+        },
+        data: {
+          phase1: "Rejected",
+        },
+      });
 
-  res.status(200).json({ message: "Application Rejected" });
+      res.status(200).json({ message: "Application Rejected" });
 
 
-}
+    }
 
-    
+
   } catch (error) {
     console.log("Error updating case:", error);
     res.status(500).json({ error: "Failed to update case." });
@@ -553,11 +553,10 @@ const updateMeeting = async (req, res) => {
 
 
 const setApproval = async (req, res) => {
-
+  console.log('setting approval')
   try {
 
     const { caseId } = req.query
-
     const { homeCondition } = req.body
 
     const parent = await prisma.cases.findUnique({
@@ -568,8 +567,6 @@ const setApproval = async (req, res) => {
         parentid: true,
       },
     })
-
-
 
     const notification = `Your Home conditions has been approved`;
 
@@ -594,13 +591,10 @@ const setApproval = async (req, res) => {
       },
     });
 
-    console.log(updatedCase.phase3)
-
-
-
+    console.log(updatedCase)
+    res.sendStatus(200)
 
   } catch (error) {
-
     console.log("Error updating case with approval", error);
     res.status(500).json({ message: "Failed to set approval", error });
 

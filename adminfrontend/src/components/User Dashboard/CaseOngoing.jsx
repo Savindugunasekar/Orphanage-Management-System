@@ -29,7 +29,7 @@ const CaseOngoing = ({ caseDetails, currentPhase, setCurrentState }) => {
     progressValue = 6; // Adjust progress value as needed
     isPhase2Visible = true;
   }
-  
+
 
 
 
@@ -45,34 +45,36 @@ const CaseOngoing = ({ caseDetails, currentPhase, setCurrentState }) => {
     isCaseClosed = true;
   }
 
+  console.log("Progress Value: ", caseDetails.phase3);
+
   return (
     <div>
-      
+
       <div className="min-h-screen p-6 bg-gray-50">
-      {caseDetails.phase1 !== "Rejected" && <div>
-        <ProgressBar step={progressValue} />
-        <div className="p-6 mb-6 bg-white rounded-lg shadow-lg">
-          <h1 className="mb-4 text-2xl font-bold text-gray-800">
-            CaseID: <span className="text-primary">{caseDetails.caseid}</span>
-          </h1>
-          <p className="mb-2 text-lg text-gray-700">
-            <span className="font-semibold">Child's Name:</span>{" "}
-            {caseDetails.child.name}
-          </p>
-          <p className="mb-2 text-lg text-gray-700">
-            <span className="font-semibold">Parent's Name:</span>{" "}
-            {caseDetails.parent.username}
-          </p>
-          <p className="text-lg text-gray-700">
-            <span className="font-semibold">Assigned Social Worker:</span>{" "}
-            {caseDetails.socialworker.username}
-          </p>
-        </div>
-      </div>  }
-        
+        {caseDetails.phase1 !== "Rejected" && <div>
+          <ProgressBar step={progressValue} />
+          <div className="p-6 mb-6 bg-white rounded-lg shadow-lg">
+            <h1 className="mb-4 text-2xl font-bold text-gray-800">
+              CaseID: <span className="text-primary">{caseDetails.caseid}</span>
+            </h1>
+            <p className="mb-2 text-lg text-gray-700">
+              <span className="font-semibold">Child's Name:</span>{" "}
+              {caseDetails.child.name}
+            </p>
+            <p className="mb-2 text-lg text-gray-700">
+              <span className="font-semibold">Parent's Name:</span>{" "}
+              {caseDetails.parent.username}
+            </p>
+            <p className="text-lg text-gray-700">
+              <span className="font-semibold">Assigned Social Worker:</span>{" "}
+              {caseDetails.socialworker.username}
+            </p>
+          </div>
+        </div>}
 
 
-      {caseDetails.phase1==="Rejected" && <DocumentsRejected caseDetails = {caseDetails}/>}
+
+        {caseDetails.phase1 === "Rejected" && <DocumentsRejected caseDetails={caseDetails} />}
 
 
         {/* Phase 1 */}
