@@ -2,6 +2,7 @@ const Stripe = require("stripe");
 const dotenv = require("dotenv");
 const { PrismaClient } = require("@prisma/client");
 
+
 dotenv.config();
 
 const stripe_key = process.env.STRIPE_SECRET_KEY;
@@ -11,19 +12,29 @@ const prisma = new PrismaClient(); // Initialize Prisma Client
 
 const donate = async (req, res) => {
   try {
-    const { amount, first_name, last_name, email, address, nic, country, phone } = req.body;
+    const {
+      amount,
+      first_name,
+      last_name,
+      email,
+      address,
+      nic,
+      country,
+      phone,
+      currency,
+    } = req.body;
 
     // Create a single line item for donation
     const line_items = [
       {
         price_data: {
-          currency: "usd",
+          currency: req.body.currency,
           product_data: {
-            name: "Donation",
+            name: "Donation for the Sri Lankan Orphanages for the Children in Need",
           },
-          unit_amount: amount, // Convert dollars to cents
+          unit_amount: amount*10,
         },
-        quantity: 1, // For donations, always 1 unit
+        quantity: 1,
       },
     ];
 
@@ -62,4 +73,13 @@ const donate = async (req, res) => {
   }
 };
 
-module.exports = { donate }
+const getAllDonations = async (req,res) => {
+  try {
+    const donations = await prisma.donation.findMany();
+    return res.json({donations});
+  } catch (error) {
+    console.error("Failed to fetch donations:", error);
+  }
+};
+
+module.exports = { donate, getAllDonations };

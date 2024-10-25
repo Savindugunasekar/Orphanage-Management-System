@@ -30,11 +30,16 @@ const handleNewUser = async (req, res) => {
 
         let result;
         if (!user) {
+
+           
+
+            
             
             const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
 
             if (isGmail) {
                 const token = jwt.sign({ email }, process.env.VERIFY_TOKEN_SECRET, { expiresIn: '1h' });
+
 
                 const verificationUrl = `${process.env.BASE_URL}/verify?token=${token}`;
 

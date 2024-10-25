@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { orphanageList } from "../constants";
 
 const UserFostering = () => {
   return (
@@ -15,10 +14,10 @@ const UserFostering = () => {
         />
 
         <div className="absolute flex flex-col inset-0 px-10 top-[40%]">
-          <div className="text-5xl  text-white mb-3 font-bold  ">
+          <div className="text-5xl text-white mb-3 font-bold">
             A Journey of Care
           </div>
-          <div className="text-7xl  text-white font-bold  ">
+          <div className="text-7xl text-white font-bold">
             What is Fostering?
           </div>
         </div>
@@ -26,10 +25,10 @@ const UserFostering = () => {
 
       <div
         id="fostering info"
-        className="h-[60vh] w-full flex justify-center items-center "
+        className="h-[60vh] w-full flex justify-center items-center"
       >
         <div className="w-[80%] h-[80%] mt-20 justify-center items-center">
-          <div className="text-2xl justify-center items-center flex  font-bold italic px-4 py-6  border-l-4 border-primary">
+          <div className="text-2xl justify-center items-center flex font-bold italic px-4 py-6 border-l-4 border-primary">
             <p className="mb-4 text-justify">
               Adoption is a special process where a person or couple becomes the
               permanent parent(s) of a child who isn't biologically theirs. It
@@ -44,18 +43,18 @@ const UserFostering = () => {
         </div>
       </div>
 
-      <div className="flex justify-center items-center flex-col">
+      <div className="flex flex-col justify-center items-center">
 
-
-        <div className="h-[60vh] bg-primary w-[90%] rounded-xl justify-center items-center flex">
-          <div className="w-[40%]  h-full flex justify-center items-center ">
+        {/* First Adoption Story */}
+        <div className="h-[60vh] bg-primary w-[90%] rounded-xl flex flex-col md:flex-row justify-center items-center mb-10">
+          <div className="md:w-[40%] w-full flex justify-center items-center">
             <img
               src="https://www.thefosteringnetwork.org.uk/sites/default/files/uploads/images/woman_reading_to_girl.jpg"
-              alt=""
-              className="w-[80%] h-[80%] rounded-lg "
+              alt="Adopting Sarah"
+              className="w-[80%] h-auto rounded-lg"
             />
           </div>
-          <div className="w-[60%]  h-full flex flex-col justify-center text-white items-center p-20 font-semibold">
+          <div className="md:w-[60%] w-full flex flex-col justify-center text-white items-center p-5 font-semibold">
             <div>
               Adopting Sarah has been a transformative and deeply fulfilling
               experience for me. From the moment she entered my life, Sarah
@@ -71,11 +70,11 @@ const UserFostering = () => {
             </div>
           </div>
         </div>
-    
-   
-        <div className="h-[60vh] w-full flex">
-          
-          <div className="w-[60%]  h-full flex flex-col justify-center items-center p-20 font-semibold">
+
+        {/* Second Adoption Story */}
+        <div className="h-[60vh] w-full flex flex-col md:flex-row mb-10">
+
+          <div className="md:w-[60%] w-full flex flex-col justify-center items-center p-5 font-semibold">
             <div>
               Adopting Liam has been a dream come true. From the first day he
               joined our family, his curiosity and enthusiasm brought a new
@@ -88,24 +87,25 @@ const UserFostering = () => {
               love and cherished memories.
             </div>
           </div>
-          <div className="w-[40%]  h-full flex justify-center items-center ">
+          <div className="md:w-[40%] w-full flex justify-center items-center">
             <img
               src="https://www.thefosteringnetwork.org.uk/sites/default/files/uploads/images/woman_reading_to_girl.jpg"
-              alt=""
-              className="w-[80%] h-[80%] rounded-lg "
+              alt="Adopting Liam"
+              className="w-[80%] h-auto rounded-lg"
             />
           </div>
         </div>
-     
-        <div className="h-[60vh] bg-primary w-[90%] rounded-xl justify-center items-center flex">
-          <div className="w-[40%]  h-full flex justify-center items-center ">
+
+        {/* Repeat of Adoption Story for Sarah */}
+        <div className="h-[60vh] bg-primary w-[90%] rounded-xl flex flex-col md:flex-row justify-center items-center mb-10">
+          <div className="md:w-[40%] w-full flex justify-center items-center">
             <img
               src="https://www.thefosteringnetwork.org.uk/sites/default/files/uploads/images/woman_reading_to_girl.jpg"
-              alt=""
-              className="w-[80%] h-[80%] rounded-lg "
+              alt="Adopting Sarah"
+              className="w-[80%] h-auto rounded-lg"
             />
           </div>
-          <div className="w-[60%]  h-full flex flex-col justify-center text-white items-center p-20 font-semibold">
+          <div className="md:w-[60%] w-full flex flex-col justify-center text-white items-center p-5 font-semibold">
             <div>
               Adopting Sarah has been a transformative and deeply fulfilling
               experience for me. From the moment she entered my life, Sarah
@@ -121,11 +121,11 @@ const UserFostering = () => {
             </div>
           </div>
         </div>
-      
-     
-        <div className="h-[60vh] w-full flex">
-          
-          <div className="w-[60%]  h-full flex flex-col justify-center items-center p-20 font-semibold">
+
+        {/* Repeat of Adoption Story for Liam */}
+        <div className="h-[60vh] w-full flex flex-col md:flex-row mb-10">
+
+          <div className="md:w-[60%] w-full flex flex-col justify-center items-center p-5 font-semibold">
             <div>
               Adopting Liam has been a dream come true. From the first day he
               joined our family, his curiosity and enthusiasm brought a new
@@ -138,23 +138,16 @@ const UserFostering = () => {
               love and cherished memories.
             </div>
           </div>
-          <div className="w-[40%]  h-full flex justify-center items-center ">
+          <div className="md:w-[40%] w-full flex justify-center items-center">
             <img
               src="https://www.thefosteringnetwork.org.uk/sites/default/files/uploads/images/woman_reading_to_girl.jpg"
-              alt=""
-              className="w-[80%] h-[80%] rounded-lg "
+              alt="Adopting Liam"
+              className="w-[80%] h-auto rounded-lg"
             />
           </div>
         </div>
-     
+
       </div>
-
-  
-        
-
-
-
-
     </div>
   );
 };

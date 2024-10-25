@@ -124,6 +124,18 @@ model child_temp {
   orphanage          orphanage   @relation(fields: [orphanageid], references: [orphanageid], onDelete: NoAction, onUpdate: NoAction, map: "temp_child_orphanageid_fkey")
 }
 
+model donation {
+  id         Int      @id @default(autoincrement())
+  first_name String?  @db.VarChar(50)
+  last_name  String?  @db.VarChar(50)
+  email      String?  @db.VarChar(100)
+  address    String?  @db.VarChar(255)
+  nic        String?  @db.VarChar(20)
+  country    String?  @db.VarChar(50)
+  phone      String?  @db.VarChar(15)
+  amount     Decimal? @db.Decimal(10, 2)
+}
+
 model messages {
   messageid    String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   sendername   String?  @db.VarChar(50)
@@ -210,18 +222,6 @@ model users {
   request_request_sender_idTousers   request[]              @relation("request_sender_idTousers")
   socialworker                       socialworker?
   staff                              staff?
-}
-
-model donation {
-  id         Int      @id @default(autoincrement())
-  first_name String?  @db.VarChar(50)
-  last_name  String?  @db.VarChar(50)
-  email      String?  @db.VarChar(100)
-  address    String?  @db.VarChar(255)
-  nic        String?  @db.VarChar(20)
-  country    String?  @db.VarChar(50)
-  phone      String?  @db.VarChar(15)
-  amount     Decimal? @db.Decimal(10, 2)
 }
 
 enum document_type {

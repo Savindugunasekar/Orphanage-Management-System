@@ -1,12 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { countries } from './../assets/assets';
 
 export default function Report() {
-  const chartRef = useRef(null); // Reference to store the chart instance for bar chart
-  const pieChartInstanceRef = useRef(null); // Reference to store the pie chart instance
-  const canvasRef = useRef(null); // Reference to the canvas for bar chart
-  const pieChartRef = useRef(null); // Reference for the pie chart canvas
+  const barChartInstanceRef= useRef(null); 
+  const pieChartInstanceRef = useRef(null); 
+  const barChart2InstanceRef = useRef(null);
+  const barChartRef = useRef(null); 
+  const barChart2Ref = useRef(null);
+  const pieChartRef = useRef(null); 
+  
 
   const [orphanageList, setOrphanageList] = useState([]);
 
@@ -16,7 +20,7 @@ export default function Report() {
     const getAllApplications = async () => {
       try {
         const response = await axiosPrivate.get("/application");
-        console.log(response.data.applicationList);
+        // console.log(response.data.applicationList);
 
         // Initialize counts for each status
         const counts = {
@@ -34,7 +38,7 @@ export default function Report() {
 
         // Create an array called countval with counts in the desired order
         const countval = [counts.Accepted, counts.Rejected, counts.Pending];
-        console.log(countval);
+        // console.log(countval);
 
         const ctxPie = pieChartRef.current?.getContext("2d");
         if (ctxPie) {
@@ -42,10 +46,9 @@ export default function Report() {
           if (pieChartInstanceRef.current) {
             pieChartInstanceRef.current.destroy();
           }
-
           // Create a new pie chart
           pieChartInstanceRef.current = new Chart(ctxPie, {
-            type: "doughnut",
+            type: "pie",
             data: {
               labels: ["Accepted", "Rejected", "Pending"],
               datasets: [
@@ -53,9 +56,9 @@ export default function Report() {
                   label: "Application Status",
                   data: countval,
                   backgroundColor: [
-                    "rgba(0, 255, 0, 0.6)",
-                    "rgba(255, 0, 0, 0.6)",
-                    "rgba(255, 255, 0, 0.6)"
+                    "rgba(0, 120, 0, 1)",    
+                    "rgba(178, 34, 34, 1)",    
+                    "rgba(255, 215, 0, 1)"   
                   ],
                 },
               ],
@@ -63,37 +66,6 @@ export default function Report() {
             },
             options: {
               responsive: true,
-              maintainAspectRatio: true,
-            },
-            animation: {
-              animateRotate: true,
-              animateScale: true,
-              duration: 1500, // Animation duration in milliseconds
-              easing: "easeInOutBounce", // Easing function for smoothness
-            },
-            hover: {
-              mode: "nearest",
-              intersect: true,
-            },
-            plugins: {
-              legend: {
-                display: true,
-                position: "bottom", // Legend position
-                labels: {
-                  color: "#333", // Text color for the legend
-                  font: {
-                    size: 14,
-                  },
-                },
-              },
-              tooltip: {
-                enabled: true,
-                backgroundColor: "rgba(0,0,0,0.7)", // Tooltip background
-                titleColor: "#fff", // Tooltip text color
-                bodyColor: "#fff",
-                borderColor: "#ddd",
-                borderWidth: 1,
-              },
             },
           });
         }
@@ -140,13 +112,13 @@ export default function Report() {
         const data = await Promise.all(dataPromises);
 
         // Destroy the previous bar chart instance if it exists
-        if (chartRef.current) {
-          chartRef.current.destroy();
+        if (barChartInstanceRef.current) {
+          barChartInstanceRef.current.destroy();
         }
 
         // Create a new bar chart
-        const ctx = canvasRef.current.getContext("2d");
-        chartRef.current = new Chart(ctx, {
+        const ctx = barChartRef.current.getContext("2d");
+        barChartInstanceRef.current = new Chart(ctx, {
           type: "bar",
           data: {
             labels: data.map((row) => row.name),
@@ -158,22 +130,12 @@ export default function Report() {
               },
               {
                 label: "Capacity",
-                backgroundColor: "rgba(255, 0, 128, 1)",
+                backgroundColor: "rgba(0, 0, 128, 1)",
                 data: data.map((row) => row.capacity),
               },
             ],
           },
           options: {
-            tooltips: {
-              callbacks: {
-                label: (tooltipItem, data) => {
-                  const value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                  return Array.isArray(value)
-                    ? (value[1] + value[0]) / 2
-                    : value;
-                },
-              },
-            },
             scales: {
               x: {
                 stacked: true,
@@ -191,30 +153,89 @@ export default function Report() {
 
     getAllOrphanages();
 
+    const countries = {};
+
+const getAlldonations = async () => {
+  console.log("Fetching donations");
+  try {
+    const response = await axiosPrivate.get("/donate");
+    console.log(response);
+
+    response.data.donations.forEach((donation) => {
+      const donationAmount = parseFloat(donation.amount);
+
+      if (!countries[donation.country]) {
+        countries[donation.country] = donationAmount;
+      } else {
+        countries[donation.country] += donationAmount;
+      }
+    }); // Fixed closing parenthesis for forEach
+
+    // Prepare data for the chart
+    const labels = Object.keys(countries);
+    const data = Object.values(countries);
+
+    const ctx = barChart2Ref.current.getContext("2d");
+    barChart2InstanceRef.current = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels, // Use labels from countries
+        datasets: [
+          {
+            label: "Amount",
+            backgroundColor:"rgba(255, 20, 147, 1)",
+            data: data // Use data values from countries
+          },
+        ],
+
+      },
+      options: {
+        indexAxis: 'y',
+      }
+    });
+
+  } catch (error) {
+    console.error("Failed to fetch donations:", error);
+  }
+  console.log(countries);
+}
+
+getAlldonations();
+
+    
     // Cleanup: destroy chart instances on unmount
     return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
+      if (barChartInstanceRef.current) {
+        barChartInstanceRef.current.destroy();
       }
       if (pieChartInstanceRef.current) {
         pieChartInstanceRef.current.destroy();
+      }
+      if (barChart2InstanceRef.current) {
+        barChart2InstanceRef.current.destroy();
       }
     };
   }, [axiosPrivate]);
 
   return (
-    <div className="flex mb-4">
-      <div className="w-1/2 h-1/2">
+    <div className="flex mt-20">
+      <div className="w-1/3 h-1/3">
         <div className="mb-4 text-2xl font-semibold text-center">
           Current Child Count in Each Orphanage
         </div>
-        <canvas ref={canvasRef} id="myChart" width="400" height="400"></canvas>
+        <canvas ref={barChartRef} width="100" height="100"></canvas>
       </div>
-      <div className="w-1/2">
+      <div className="w-1/3 h-1/3"> 
         <div className="mb-4 text-2xl font-semibold text-center">
           Application Status
         </div>
-        <canvas ref={pieChartRef} width="400" height="400"></canvas>
+        <canvas ref={pieChartRef} width="100" height="100"></canvas>
+      </div>
+      <div className="w-1/3 h-1/3">
+        <div className="mb-4 text-2xl font-semibold text-center">
+          Donation Status
+        </div>
+        <canvas ref={barChart2Ref} width="100" height="100"></canvas>
       </div>
     </div>
   );
