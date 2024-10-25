@@ -351,10 +351,6 @@ export const rolesList = [
     "rolename": "Staff"
   },
   {
-    "roleid": 4,
-    "rolename": "Parents"
-  },
-  {
     "roleid": 1010,
     "rolename": "User"
   }

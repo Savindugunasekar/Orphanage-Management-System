@@ -1,12 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { countries } from './../assets/assets';
 
 export default function Report() {
   const barChartInstanceRef= useRef(null); 
   const pieChartInstanceRef = useRef(null); 
+  const barChart2InstanceRef = useRef(null);
   const barChartRef = useRef(null); 
+  const barChart2Ref = useRef(null);
   const pieChartRef = useRef(null); 
+  
 
   const [orphanageList, setOrphanageList] = useState([]);
 
@@ -44,7 +48,7 @@ export default function Report() {
           }
           // Create a new pie chart
           pieChartInstanceRef.current = new Chart(ctxPie, {
-            type: "doughnut",
+            type: "pie",
             data: {
               labels: ["Accepted", "Rejected", "Pending"],
               datasets: [
@@ -52,9 +56,9 @@ export default function Report() {
                   label: "Application Status",
                   data: countval,
                   backgroundColor: [
-                    "rgba(0, 255, 0, 0.6)",    
-                    "rgba(255, 0, 0, 0.6)",    
-                    "rgba(255, 255, 0, 0.6)"   
+                    "rgba(0, 120, 0, 1)",    
+                    "rgba(178, 34, 34, 1)",    
+                    "rgba(255, 215, 0, 1)"   
                   ],
                 },
               ],
@@ -150,33 +154,55 @@ export default function Report() {
     getAllOrphanages();
 
     const countries = {};
-    
-    const getAlldonations = async () => {
-      console.log("Fetching donations");
-      try {
-        const response = await axiosPrivate.get("/donate");
-        console.log(response.data); // Log the donation data
-        
-        response.data.donations.forEach((donation) => {
-          console.log(donation); // Log each donation
-          if(!countries.includes(donation.country)){
-            countries.push(donation.country)
-          }else{
-            countries.map((country) => {
-              if(country === donation.country){
-                country.amount += donation.amount
-              }
-            })
-          }
-          console.log(countries);
-        });
-        
-      } catch (error) { // Include the error parameter here
-        console.error("Failed to fetch donations:", error);
+
+const getAlldonations = async () => {
+  console.log("Fetching donations");
+  try {
+    const response = await axiosPrivate.get("/donate");
+    console.log(response);
+
+    response.data.donations.forEach((donation) => {
+      const donationAmount = parseFloat(donation.amount);
+
+      if (!countries[donation.country]) {
+        countries[donation.country] = donationAmount;
+      } else {
+        countries[donation.country] += donationAmount;
       }
-    }
+    }); // Fixed closing parenthesis for forEach
+
+    // Prepare data for the chart
+    const labels = Object.keys(countries);
+    const data = Object.values(countries);
+
+    const ctx = barChart2Ref.current.getContext("2d");
+    barChart2InstanceRef.current = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels, // Use labels from countries
+        datasets: [
+          {
+            label: "Amount",
+            backgroundColor:"rgba(255, 20, 147, 1)",
+            data: data // Use data values from countries
+          },
+        ],
+
+      },
+      options: {
+        indexAxis: 'y',
+      }
+    });
+
+  } catch (error) {
+    console.error("Failed to fetch donations:", error);
+  }
+  console.log(countries);
+}
+
+getAlldonations();
+
     
-    getAlldonations();
     // Cleanup: destroy chart instances on unmount
     return () => {
       if (barChartInstanceRef.current) {
@@ -185,22 +211,31 @@ export default function Report() {
       if (pieChartInstanceRef.current) {
         pieChartInstanceRef.current.destroy();
       }
+      if (barChart2InstanceRef.current) {
+        barChart2InstanceRef.current.destroy();
+      }
     };
   }, [axiosPrivate]);
 
   return (
-    <div className="flex mb-4">
+    <div className="flex mt-20">
       <div className="w-1/3 h-1/3">
         <div className="mb-4 text-2xl font-semibold text-center">
           Current Child Count in Each Orphanage
         </div>
         <canvas ref={barChartRef} width="100" height="100"></canvas>
       </div>
-      <div className="w-1/3 h-1/3">
+      <div className="w-1/3 h-1/3"> 
         <div className="mb-4 text-2xl font-semibold text-center">
           Application Status
         </div>
         <canvas ref={pieChartRef} width="100" height="100"></canvas>
+      </div>
+      <div className="w-1/3 h-1/3">
+        <div className="mb-4 text-2xl font-semibold text-center">
+          Donation Status
+        </div>
+        <canvas ref={barChart2Ref} width="100" height="100"></canvas>
       </div>
     </div>
   );
