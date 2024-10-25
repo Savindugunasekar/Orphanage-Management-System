@@ -16,6 +16,7 @@ export default function BroadcastMsg() {
 
     const handleMassage = async (data) => {
         console.log("Inside the handle massage...");
+        console.log(data);
         try {
             await axiosPrivate.post("/broadcast", data, {
                 headers: {
@@ -24,7 +25,7 @@ export default function BroadcastMsg() {
             });
             toast.success('Message sent successfully');
         } catch (error) {
-            toast.error('Failed to send message');
+            toast.error('Failed to snd message');
             console.log(error);
         }
     };
@@ -34,12 +35,10 @@ export default function BroadcastMsg() {
         console.log(massage, selectedGroup);
     }
 
-
     return (
         <div>
-            <div className=' p-5 bg-white rounded shadow-lg'>
+            <div className='p-5 bg-white rounded shadow-lg '>
                 <h2 className='mb-4 text-xl font-bold'>Broadcast Message</h2>
-
                 <label className='block mb-2'>Type Your Message:</label>
                 <textarea
                     value={massage}

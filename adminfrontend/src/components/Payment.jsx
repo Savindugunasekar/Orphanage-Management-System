@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // Import axios
+import {countries,country_currency} from "../assets/assets";
 
 export default function Payment() {
   const navigate = useNavigate();
@@ -14,19 +15,31 @@ export default function Payment() {
     country: "",
     phone: "",
     amount: 0,
+    currency: ""
   });
 
   // Handle form field changes
   const onChangeHandler = (event) => {
     const { name, value } = event.target;
-    setData((prevData) => ({ ...prevData, [name]: value }));
+    
+    // If the field is 'country', update the currency accordingly
+    if (name === "country") {
+      const selectedCurrency = country_currency[value] || "USD"; // Default to USD if country is not found
+      setData((prevData) => ({
+        ...prevData,
+        country: value,
+        currency: selectedCurrency,
+      }));
+    } else {
+      setData((prevData) => ({ ...prevData, [name]: value }));
+    }
   };
-
+  
   // Handle order placement
   const donate = async (event) => {
     event.preventDefault();
     console.log("Inside the donate function");
-
+    
     try {
       const url = "http://localhost:4000"; // Define your API URL here
       const response = await axios.post(`${url}/donate`, data);
@@ -105,15 +118,20 @@ export default function Payment() {
                 placeholder="NIC Number"
                 className="w-full p-3 border border-orange-400 rounded-lg"
               />
-              <input
+              <select
                 required
                 name="country"
                 onChange={onChangeHandler}
                 value={data.country}
-                type="text"
-                placeholder="Country"
                 className="w-full p-3 border border-orange-400 rounded-lg"
-              />
+              >
+                <option value="">Select a country</option>
+                {countries.map((country, index) => (
+                  <option key={index} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
             </div>
             <input
               name="phone"

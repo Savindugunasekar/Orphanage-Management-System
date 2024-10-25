@@ -23,7 +23,7 @@ import Myapplications from "./components/MoreInfo";
 import UserCaseList from "./components/UserCaseList";
 import CaseSW from "./components/CaseSW";
 
-import Notification from "./components/Notification";
+import ViewBroadcast from "./components/ViewBroadcast";
 import LandingPage from "./components/LandingPage";
 import VideoChat from "./components/VideoChat";
 
@@ -64,6 +64,7 @@ function App() {
         <Route path='/register' element={<Register />} />
         <Route path='/donateNow' element={<Payment />} />
         <Route path="/verify" element={<VerifyEmail />} />
+        
 
 
 
@@ -96,7 +97,7 @@ function App() {
             </Route>
 
             {/*user routes*/}
-            <Route path="/user" element={<RequireAuth allowedRoles={[ROLES.Head, ROLES.Head, ROLES.SocialWorker, ROLES.User]} />} >
+            <Route path="/user" element={<RequireAuth allowedRoles={[ROLES.Head, ROLES.SocialWorker, ROLES.User]} />} >
               <Route path='dashboard' element={<UserDashboard />} />
               <Route path='application' element={<Application />} />
               <Route path='inbox' element={<UserInbox />} />
