@@ -39,6 +39,9 @@ router.route('/approval')
 .get(verifyRoles(ROLES_LIST.Head,ROLES_LIST.SocialWorker,ROLES_LIST.User),caseController.getApproval)
 .post(verifyRoles(ROLES_LIST.Head,ROLES_LIST.SocialWorker),caseController.setApproval)
 
+router.route('/delete')
+.post(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SocialWorker,ROLES_LIST.Head,ROLES_LIST.User),caseController.deleteCaseById)
+
 module.exports = router
 
 
