@@ -91,7 +91,7 @@ const AdminDashboard = () => {
     }, [])
 
     return (
-        <div className='flex flex-col sm:flex-row mt-20'>
+        <div className='flex flex-col sm:flex-row mt-20' id='adminPanel'>
 
             {/*side bar*/}
             <ul className="menu w-80 p-0 [&_li>*]:rounded-none hidden lg:block ml-5" >
