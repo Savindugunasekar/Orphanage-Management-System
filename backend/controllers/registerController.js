@@ -4,18 +4,12 @@ const bcrypt = require('bcrypt'); // For hashing passwords
 const jwt = require('jsonwebtoken'); // For creating and verifying JSON Web Tokens
 const nodemailer = require('nodemailer'); // For sending emails
 const express = require('express'); // For creating the Express app (if needed)
+const { transporter } = require('../config/nodemailer');
 
 // Initialize Prisma Client
 const prisma = new PrismaClient();
 
-// Set up Nodemailer transporter
-const transporter = nodemailer.createTransport({
-    service: 'gmail', // You can change this to your email provider
-    auth: {
-        user: process.env.EMAIL, // Your email address
-        pass: process.env.PASSWORD // Your email password or app password
-    }
-});
+
 const handleNewUser = async (req, res) => {
     const { username, password, telno, email } = req.body;
 
@@ -36,24 +30,29 @@ const handleNewUser = async (req, res) => {
 
         let result;
         if (!user) {
-            // Check if the email is a Gmail address
-            // const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
 
-            // if (isGmail) {
-            //     const token = jwt.sign({ email }, process.env.VERIFY_TOKEN_SECRET, { expiresIn: '1hr' });
+           
 
-            //     const verificationUrl = `${process.env.BASE_URL}/verify?token=${token}`;
+            
+            
+            const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
 
-            //     // Send verification email
-            //     await transporter.sendMail({
-            //         from: process.env.EMAIL,
-            //         to: email,
-            //         subject: 'Email Verification',
-            //         html: `<h1>Email Confirmation</h1>
-            //                <p>Click the link below to verify your email:</p>
-            //                <a href="${verificationUrl}">Verify Email</a>`,
-            //     });
-            // }
+            if (isGmail) {
+                const token = jwt.sign({ email }, process.env.VERIFY_TOKEN_SECRET, { expiresIn: '1h' });
+
+
+                const verificationUrl = `${process.env.BASE_URL}/verify?token=${token}`;
+
+                // Send verification email
+                await transporter.sendMail({
+                    from: process.env.EMAIL,
+                    to: email,
+                    subject: 'Email Verification',
+                    html: `<h1>Email Confirmation</h1>
+                           <p>Click the link below to verify your email:</p>
+                           <a href="${verificationUrl}">Verify Email</a>`,
+                });
+            }
 
             result = await prisma.users.create({
                 data: {

@@ -106,18 +106,17 @@ const HomeVisit = ({ caseId }) => {
 
   const submitHomeConditionApproval = async () => {
     try {
-      setLoading(true)
-      await axiosPrivate.post(
-        `/case/approval?caseId=${caseId}`,
-        { homeCondition }
-      );
-      setLoading(false)
+      setLoading(true);
+      await axiosPrivate.post(`/case/approval?caseId=${caseId}`, { homeCondition });
       toast.success("Home condition form submitted successfully.");
     } catch (error) {
-      console.error("Error submitting home condition", error);
+      console.error("Error submitting home condition", error.response?.data || error.message);
       toast.error("Failed to submit home condition form.");
+    } finally {
+      setLoading(false);  // Ensure loading is stopped regardless of success or failure
     }
   };
+
 
   const getApproval = async () => {
     try {
